@@ -4,6 +4,8 @@ import android.database.ContentObserver;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+import java.util.List;
+
 import fr.neamar.kiss.loader.LoadContactsPojos;
 import fr.neamar.kiss.normalizer.PhoneNormalizer;
 import fr.neamar.kiss.normalizer.StringNormalizer;

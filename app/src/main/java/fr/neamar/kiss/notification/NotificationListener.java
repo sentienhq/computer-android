@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import fr.neamar.kiss.KissApplication;
@@ -57,7 +58,7 @@ public class NotificationListener extends NotificationListenerService {
                 notificationsByPackage.put(packageKey, new HashSet<>());
             }
 
-            notificationsByPackage.get(packageKey).add(Integer.toString(sbn.getId()));
+            Objects.requireNonNull(notificationsByPackage.get(packageKey)).add(Integer.toString(sbn.getId()));
         }
 
         // And synchronise this map with our SharedPreferences
@@ -95,7 +96,7 @@ public class NotificationListener extends NotificationListenerService {
 
         editor.apply();
 
-        Log.v(TAG, "Removed all notifications for " + packages.toString());
+        Log.v(TAG, "Removed all notifications for " + packages);
 
         super.onListenerDisconnected();
     }
@@ -188,13 +189,12 @@ public class NotificationListener extends NotificationListenerService {
     }
 
     /**
-     * Check for trivial notifications.
-     *
+     * Check for trivial notifications
      * From Android O notification channels controls if badges should be displayed.
      * For older versions and legacy notification channel low priority notifications, ongoing notifications
      * and group summaries should not be displayed.
      *
-     * @param sbn
+     * @param sbn: StatusBarNotification
      * @return true if badge should not be displayed
      */
     public boolean isNotificationTrivial(StatusBarNotification sbn) {

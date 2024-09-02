@@ -55,7 +55,7 @@ public class RootHandler {
         try {
             p = Runtime.getRuntime().exec("su");
             //put command
-            if (command != null && !command.trim().equals("")) {
+            if (command != null && !command.trim().isEmpty()) {
                 p.getOutputStream().write((command + "\n").getBytes(UTF_8));
             }
             //exit from su command

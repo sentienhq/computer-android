@@ -26,7 +26,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.DragEvent;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,13 +34,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.PopupWindow;
-import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
 
 import androidx.annotation.NonNull;
 
@@ -262,12 +257,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         findViewById(android.R.id.content).setOnTouchListener(this);
 
         // Add layout change listener for soft keyboard detection
-        findViewById(android.R.id.content).getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                forwarderManager.onGlobalLayout();
-            }
-        });
+        findViewById(android.R.id.content).getViewTreeObserver().addOnGlobalLayoutListener(() -> forwarderManager.onGlobalLayout());
 
         // add history popup touch listener to empty view (prevents it from not working there)
         this.emptyListView.setOnTouchListener(this);
@@ -279,12 +269,9 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         this.list.setOnItemClickListener((parent, v, position, id) -> adapter.onClick(position, v));
 
         this.list.setLongClickable(true);
-        this.list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View v, int pos, long id) {
-                ((RecordAdapter) parent.getAdapter()).onLongClick(pos, v);
-                return true;
-            }
+        this.list.setOnItemLongClickListener((parent, v, pos, id) -> {
+            ((RecordAdapter) parent.getAdapter()).onLongClick(pos, v);
+            return true;
         });
 
         // Display empty list view when having no results
@@ -332,40 +319,32 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         // Fixes bug when dropping onto a textEdit widget which can cause a NPE
         // This fix should be on ALL TextEdit Widgets !!!
         // See : https://stackoverflow.com/a/23483957
-        searchEditText.setOnDragListener(new View.OnDragListener() {
-            @Override
-            public boolean onDrag(View v, DragEvent event) {
-                return true;
-            }
-        });
+        searchEditText.setOnDragListener((v, event) -> true);
 
 
         // On validate, launch first record
-        searchEditText.setOnEditorActionListener(new OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == android.R.id.closeButton) {
-                    systemUiVisibilityHelper.onKeyboardVisibilityChanged(false);
-                    if (mPopup != null) {
-                        mPopup.dismiss();
-                        return true;
-                    }
-                    systemUiVisibilityHelper.onKeyboardVisibilityChanged(false);
-                    hider.fixScroll();
-                    return false;
+        searchEditText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == android.R.id.closeButton) {
+                systemUiVisibilityHelper.onKeyboardVisibilityChanged(false);
+                if (mPopup != null) {
+                    mPopup.dismiss();
+                    return true;
                 }
-
-                if (prefs.getBoolean("always-default-web-search-on-enter", false)) {
-                    SearchPojo pojo = SearchProvider.getDefaultSearch(v.getText().toString(), MainActivity.this, prefs);
-                    if (pojo != null) {
-                        Result.fromPojo(MainActivity.this, pojo).fastLaunch(MainActivity.this, null);
-                    }
-                } else {
-                    adapter.onClick(adapter.getCount() - 1, v);
-                }
-
-                return true;
+                systemUiVisibilityHelper.onKeyboardVisibilityChanged(false);
+                hider.fixScroll();
+                return false;
             }
+
+            if (prefs.getBoolean("always-default-web-search-on-enter", false)) {
+                SearchPojo pojo = SearchProvider.getDefaultSearch(v.getText().toString(), MainActivity.this, prefs);
+                if (pojo != null) {
+                    Result.fromPojo(MainActivity.this, pojo).fastLaunch(MainActivity.this, null);
+                }
+            } else {
+                adapter.onClick(adapter.getCount() - 1, v);
+            }
+
+            return true;
         });
 
         registerForContextMenu(menuButton);
@@ -374,7 +353,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         // Hide the keyboard.
         this.hider = new KeyboardScrollHider(this,
                 this.list,
-                (BottomPullEffectView) this.findViewById(R.id.listEdgeEffect)
+                this.findViewById(R.id.listEdgeEffect)
         );
         this.hider.start();
 
@@ -406,7 +385,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
     }
 
     @Override
-    public boolean onContextItemSelected(MenuItem item) {
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
         return onOptionsItemSelected(item);
     }
 
@@ -540,7 +519,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (forwarderManager.onOptionsItemSelected(item)) {
             return true;
         }
@@ -633,7 +612,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 SearchEditText edit = ((SearchEditText) v);
                 Rect outR = new Rect();
                 edit.getGlobalVisibleRect(outR);
-                Boolean isKeyboardOpen = !outR.contains((int)ev.getRawX(), (int)ev.getRawY());
+                boolean isKeyboardOpen = !outR.contains((int)ev.getRawX(), (int)ev.getRawY());
                 edit.setCursorVisible(!isKeyboardOpen);
             }
         }
@@ -786,7 +765,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
     private void updateSearchRecords(boolean isRefresh, String query) {
         if (isRefresh && isViewingAllApps()) {
             // Refreshing while viewing all apps (for instance app installed or uninstalled in the background)
-            runTask(new ApplicationsSearcher(this, isRefresh));
+            runTask(new ApplicationsSearcher(this, true));
             return;
         }
 
@@ -879,12 +858,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         dismissPopup();
         mPopup = popup;
         popup.setVisibilityHelper(systemUiVisibilityHelper);
-        popup.setOnDismissListener(new PopupWindow.OnDismissListener() {
-            @Override
-            public void onDismiss() {
-                MainActivity.this.mPopup = null;
-            }
-        });
+        popup.setOnDismissListener(() -> MainActivity.this.mPopup = null);
         hider.fixScroll();
     }
 
@@ -997,6 +971,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
             i.addCategory(Intent.CATEGORY_HOME);
             PackageManager pm = getPackageManager();
             final ResolveInfo mInfo = pm.resolveActivity(i, PackageManager.MATCH_DEFAULT_ONLY);
+            assert mInfo != null;
             homePackage = mInfo.activityInfo.packageName;
         } catch (Exception e) {
             homePackage = "unknown";

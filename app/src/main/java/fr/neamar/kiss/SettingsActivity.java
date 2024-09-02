@@ -1,5 +1,6 @@
 package fr.neamar.kiss;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.role.RoleManager;
 import android.content.Intent;
@@ -53,6 +54,7 @@ import fr.neamar.kiss.utils.Permission;
 import fr.neamar.kiss.utils.ShortcutUtil;
 import fr.neamar.kiss.utils.SystemUiVisibilityHelper;
 
+@SuppressLint("ExportedPreferenceActivity")
 @SuppressWarnings("FragmentInjection")
 public class SettingsActivity extends PreferenceActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener {
@@ -114,19 +116,19 @@ public class SettingsActivity extends PreferenceActivity implements
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             removePreference("gestures-holder", "double-tap");
         }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            removePreference("colors-section", "black-notification-icons");
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            removePreference("history-hide-section", "pref-hide-navbar");
-            removePreference("history-hide-section", "pref-hide-statusbar");
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
-            removePreference("advanced", "enable-notifications");
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            removePreference("alternate-history-inputs-section", "enable-notification-history");
-        }
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+//            removePreference("colors-section", "black-notification-icons");
+//        }
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+//            removePreference("history-hide-section", "pref-hide-navbar");
+//            removePreference("history-hide-section", "pref-hide-statusbar");
+//        }
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP_MR1) {
+//            removePreference("advanced", "enable-notifications");
+//        }
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+//            removePreference("alternate-history-inputs-section", "enable-notification-history");
+//        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             removePreference("icons-section", DrawableUtils.KEY_THEMED_ICONS);
         }
@@ -264,6 +266,7 @@ public class SettingsActivity extends PreferenceActivity implements
 
         if (prefEntryToRun == null && enableValue.equals(dependOnValue)) {
             prefEntryToRun = new ListPreference(this);
+
             prefEntryToRun.setKey(listKey);
             prefEntryToRun.setTitle(R.string.gesture_launch_pojo);
 

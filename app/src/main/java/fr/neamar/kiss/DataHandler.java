@@ -46,6 +46,7 @@ import fr.neamar.kiss.db.HistoryMode;
 import fr.neamar.kiss.db.ShortcutRecord;
 import fr.neamar.kiss.db.ValuedHistoryRecord;
 import fr.neamar.kiss.pojo.AppPojo;
+import fr.neamar.kiss.pojo.ContactsPojo;
 import fr.neamar.kiss.pojo.NameComparator;
 import fr.neamar.kiss.pojo.Pojo;
 import fr.neamar.kiss.pojo.ShortcutPojo;
@@ -56,8 +57,12 @@ import fr.neamar.kiss.utils.UserHandle;
 
 public class DataHandler extends BroadcastReceiver
         implements SharedPreferences.OnSharedPreferenceChangeListener {
+    /**
+     * Key for a preference that holds a String set of apps which are excluded from showing shortcuts.
+     * Each string in the set is the packageName of an app which may not show shortcuts.
+     */
+    public final static String PREF_KEY_EXCLUDED_SHORTCUT_APPS = "excluded-shortcut-apps";
     final static private String TAG = DataHandler.class.getSimpleName();
-
     /**
      * Package the providers reside in
      */
@@ -68,18 +73,11 @@ public class DataHandler extends BroadcastReceiver
     final static private List<String> PROVIDER_NAMES = Arrays.asList(
             "app", "contacts", "shortcuts"
     );
-
-    /**
-     * Key for a preference that holds a String set of apps which are excluded from showing shortcuts.
-     * Each string in the set is the packageName of an app which may not show shortcuts.
-     */
-    public final static String PREF_KEY_EXCLUDED_SHORTCUT_APPS = "excluded-shortcut-apps";
-
-    private TagsHandler tagsHandler;
     final private Context context;
-    private String currentQuery;
     private final Map<String, ProviderEntry> providers = new HashMap<>();
     public boolean allProvidersHaveLoaded = false;
+    private TagsHandler tagsHandler;
+    private String currentQuery;
     private long start;
 
     /**
@@ -790,6 +788,20 @@ public class DataHandler extends BroadcastReceiver
         if (contactsProvider != null) {
             contactsProvider.reload();
         }
+    }
+
+    /**
+     * Get all contacts from the contacts provider.
+     *
+     * @return contacts or null if the provider is not loaded
+     */
+    @Nullable
+    public List<ContactsPojo> getContacts() {
+        ContactsProvider contactsProvider = getContactsProvider();
+        if (contactsProvider != null) {
+            return contactsProvider.getPojos();
+        }
+        return null;
     }
 
     @Nullable
