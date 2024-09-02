@@ -1,42 +1,34 @@
 package fr.neamar.kiss.sentien;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.security.keystore.KeyProperties;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Arrays;
 
-import fr.neamar.kiss.DataHandler;
-
-//import io.minio.BucketExistsArgs;
-//import io.minio.MakeBucketArgs;
-//import io.minio.MinioClient;
+import javax.crypto.KeyGenerator;
 
 public class AccountService {
-    // TODO: S3 connector
-//    private final String endpoint = "https://api.sentien.io/v1/accounts"; private final String accessKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMe"; private final String secretKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMe"; private final String bucketName = "kiss"; private final String region = "auto";
-//    private final String accessKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMe";
-//    private final String secretKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMe";
-//    private final String bucketName = "kiss";
-//    private final String region = "auto";
     private static final String usernameAlias = "sentien_username";
     private static final String passwordAlias = "sentien_password";
     private final Context context;
     private String username = "";
     private String password = "";
     private KeyStore keystore;
-    private DataHandler dataHandler;
     //    private MinioClient minioClient;
     private ConnectivityManager mgr;
     private NetworkCapabilities activeNetwork;
     private boolean connected = false;
 
-    AccountService(Context context, DataHandler dataHandler) {
+    AccountService(Context context, SharedPreferences prefs) {
         this.context = context;
-        this.dataHandler = dataHandler;
         mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         Network nw = mgr.getActiveNetwork();
         if (nw != null) {
@@ -45,7 +37,8 @@ public class AccountService {
 
         }
         try {
-            keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+
             boolean hasUsername = keystore.containsAlias(usernameAlias);
             boolean hasPassword = keystore.containsAlias(passwordAlias);
             if (!hasUsername || !hasPassword) {
@@ -60,7 +53,7 @@ public class AccountService {
             }
 
             // keystore.load(null, null); // TODO: load keystore
-        } catch (KeyStoreException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -90,4 +83,6 @@ public class AccountService {
         }
         return (activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH));
     }
+
+
 }

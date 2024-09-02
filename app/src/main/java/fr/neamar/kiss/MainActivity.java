@@ -40,6 +40,11 @@ import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
 
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 import fr.neamar.kiss.adapter.RecordAdapter;
@@ -55,6 +60,7 @@ import fr.neamar.kiss.searcher.QuerySearcher;
 import fr.neamar.kiss.searcher.Searcher;
 import fr.neamar.kiss.searcher.TagsSearcher;
 import fr.neamar.kiss.searcher.UntaggedSearcher;
+import fr.neamar.kiss.sentien.ComputerModule;
 import fr.neamar.kiss.ui.AnimatedListView;
 import fr.neamar.kiss.ui.BottomPullEffectView;
 import fr.neamar.kiss.ui.KeyboardScrollHider;
@@ -80,17 +86,10 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
      * Store user preferences
      */
     public SharedPreferences prefs;
-
-    /**
-     * Receive events from providers
-     */
-    private BroadcastReceiver mReceiver;
-
     /**
      * View for the Search text
      */
     public SearchEditText searchEditText;
-
     /**
      * Main list view
      */
@@ -104,7 +103,6 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
      * Utility for automatically hiding the keyboard when scrolling down
      */
     public KeyboardScrollHider hider;
-
     /**
      * The ViewGroup that wraps the buttons at the right hand side of the searchEditText
      */
@@ -123,11 +121,6 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
      */
     public ViewGroup favoritesBar;
     /**
-     * Progress bar displayed when loading
-     */
-    private View loaderSpinner;
-
-    /**
      * The ViewGroup that wraps the buttons at the left hand side of the searchEditText
      */
     public ViewGroup leftHandSideButtonsWrapper;
@@ -135,7 +128,6 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
      * Launcher button, can be clicked to display all apps
      */
     public View launcherButton;
-
     /**
      * Launcher button's white counterpart, which appears when launcher button is clicked
      */
@@ -144,7 +136,14 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
      * "X" button to empty the search field
      */
     public View clearButton;
-
+    /**
+     * Receive events from providers
+     */
+    private BroadcastReceiver mReceiver;
+    /**
+     * Progress bar displayed when loading
+     */
+    private View loaderSpinner;
     /**
      * Task launched on text change
      */
@@ -165,6 +164,8 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
 
     private ForwarderManager forwarderManager;
     private Permission permissionManager;
+
+    private ComputerModule computerModule;
 
     /**
      * Called when the activity is first created.
@@ -205,6 +206,12 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                     Log.v(TAG, "All providers are done loading.");
 
                     displayLoader(false);
+
+                    try {
+                        computerModule = new ComputerModule(context, KissApplication.getApplication(context).getDataHandler(), prefs);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
 
                     // Run GC once to free all the garbage accumulated during provider initialization
                     System.gc();
@@ -418,6 +425,9 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         if (KissApplication.getApplication(this).getDataHandler().allProvidersHaveLoaded) {
             displayLoader(false);
             onFavoriteChange();
+            if (computerModule != null) {
+                computerModule.checkForUpdates();
+            }
         }
 
         // We need to update the history in case an external event created new items
@@ -612,7 +622,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 SearchEditText edit = ((SearchEditText) v);
                 Rect outR = new Rect();
                 edit.getGlobalVisibleRect(outR);
-                boolean isKeyboardOpen = !outR.contains((int)ev.getRawX(), (int)ev.getRawY());
+                boolean isKeyboardOpen = !outR.contains((int) ev.getRawX(), (int) ev.getRawY());
                 edit.setCursorVisible(!isKeyboardOpen);
             }
         }
