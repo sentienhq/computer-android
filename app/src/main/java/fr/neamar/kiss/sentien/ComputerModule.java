@@ -1,5 +1,6 @@
 package fr.neamar.kiss.sentien;
 
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -18,14 +19,19 @@ public class ComputerModule {
 
     private boolean enabled = false;
 
+    private ClipboardManager clipboardManager;
+
     private CryptoService cryptoService;
     private AccountService accountService;
     private DataService dataService;
+    private ClipboardService clipboardService;
 
 
     public ComputerModule(Context context, DataHandler dataHandler, SharedPreferences prefs) {
         try {
             accountService = new AccountService(context, prefs);
+            
+            clipboardService = new ClipboardService(context);
 
             dataService = new DataService(dataHandler);
             cryptoService = new CryptoService();
