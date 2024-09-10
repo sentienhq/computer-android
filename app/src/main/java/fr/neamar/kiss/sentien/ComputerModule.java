@@ -16,7 +16,7 @@ import fr.neamar.kiss.DataHandler;
 public class ComputerModule {
     public static final String MODULE_NAME = "Computer";
     public static final String MODULE_VERSION = "0.0.1";
-
+    private static final String TAG = "ComputerModule";
     private boolean enabled = false;
 
     private ClipboardManager clipboardManager;
@@ -29,12 +29,13 @@ public class ComputerModule {
 
     public ComputerModule(Context context, DataHandler dataHandler, SharedPreferences prefs) {
         try {
-            accountService = new AccountService(context, prefs);
-            
+            cryptoService = new CryptoService(context);
+            accountService = new AccountService(context, prefs, cryptoService);
+
             clipboardService = new ClipboardService(context);
 
             dataService = new DataService(dataHandler);
-            cryptoService = new CryptoService();
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

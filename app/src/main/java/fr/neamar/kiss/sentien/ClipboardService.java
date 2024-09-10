@@ -6,6 +6,7 @@ import android.content.Context;
 import android.util.Log;
 
 public class ClipboardService {
+    private static final String TAG = "ClipboardService";
     private static ClipboardManager clipboardManager;
     public static ClipboardManager.OnPrimaryClipChangedListener listener = () -> {
 

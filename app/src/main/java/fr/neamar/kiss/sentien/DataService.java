@@ -11,6 +11,7 @@ import fr.neamar.kiss.pojo.AppPojo;
 import fr.neamar.kiss.pojo.ContactsPojo;
 
 public class DataService {
+    private static final String TAG = "DataService";
     private final DataHandler dataHandler;
     private final Gson gson;
     private String JSON_Contacts = "";

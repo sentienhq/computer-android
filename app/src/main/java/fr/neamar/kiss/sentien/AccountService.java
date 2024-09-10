@@ -6,55 +6,37 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.security.keystore.KeyProperties;
+import android.util.Log;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.Arrays;
 
 import javax.crypto.KeyGenerator;
 
 public class AccountService {
-    private static final String usernameAlias = "sentien_username";
-    private static final String passwordAlias = "sentien_password";
+    private static final String TAG = "AccountService";
     private final Context context;
-    private String username = "";
-    private String password = "";
-    private KeyStore keystore;
     //    private MinioClient minioClient;
-    private ConnectivityManager mgr;
+    private ConnectivityManager connectivityManager;
     private NetworkCapabilities activeNetwork;
+    private CryptoService cryptoService;
     private boolean connected = false;
 
-    AccountService(Context context, SharedPreferences prefs) {
+    AccountService(Context context, SharedPreferences prefs, CryptoService cryptoService) {
         this.context = context;
-        mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        Network nw = mgr.getActiveNetwork();
-        if (nw != null) {
-            activeNetwork = mgr.getNetworkCapabilities(nw);
-            connected = isConnected();
-
-        }
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
-
-            boolean hasUsername = keystore.containsAlias(usernameAlias);
-            boolean hasPassword = keystore.containsAlias(passwordAlias);
-            if (!hasUsername || !hasPassword) {
+        this.cryptoService = cryptoService;
+        this.connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        updateNetworkStatus();
+        if (connected) {
+            boolean isInitialized = cryptoService.isInitialized();
+            if (!isInitialized) {
+                Log.i(TAG, "CryptoService is not initialized, carry on");
                 return;
-            } else {
-                try {
-                    username = Arrays.toString(keystore.getKey(usernameAlias, null).getEncoded());
-                    password = Arrays.toString(keystore.getKey(passwordAlias, null).getEncoded());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
             }
-
-            // keystore.load(null, null); // TODO: load keystore
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            cryptoService.generateRegistrationObject();
         }
     }
 
@@ -65,6 +47,7 @@ public class AccountService {
                 if (!connected) {
                     return false;
                 }
+
             }
             return true;
         } catch (Exception e) {
@@ -77,11 +60,23 @@ public class AccountService {
 
     }
 
-    public boolean isConnected() {
-        if (activeNetwork == null) {
-            return false;
+    private void updateNetworkStatus() {
+        Network network = connectivityManager.getActiveNetwork();
+        if (network != null) {
+            activeNetwork = connectivityManager.getNetworkCapabilities(network);
+            connected = isConnected();
+        } else {
+            connected = false;
         }
-        return (activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH));
+    }
+
+    public boolean isConnected() {
+        return activeNetwork != null && (
+                activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)
+        );
     }
 
 
