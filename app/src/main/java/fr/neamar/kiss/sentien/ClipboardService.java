@@ -14,7 +14,7 @@ public class ClipboardService {
         Log.d("ClipboardService", "Clipboard changed" + clipboardText);
     };
 
-    ClipboardService(Context context) {
+    ClipboardService(Context context, AccountService accountService) {
         clipboardManager = ((ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE));
         clipboardManager.addPrimaryClipChangedListener(ClipboardService.listener);
     }

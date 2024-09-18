@@ -39,6 +39,8 @@ public class AccountService {
     private boolean accountCreated;
     private String deviceAlias;
     private String userAlias;
+    private String userId;
+    private String deviceId;
     private String jwtToken;
 
     AccountService(Context context, SharedPreferences prefs, CryptoService cryptoService, DataService dataService) {
@@ -110,7 +112,9 @@ public class AccountService {
                 jwtToken = jsonResponse.getString("token");
                 boolean isRootMatching = jsonResponse.getBoolean("isRootMatching");
                 String rootDataBlob = jsonResponse.getString("rootData");
-
+                prefsCM.edit().putBoolean(ACCOUNT_CREATED_PREF, true).apply();
+                userId = loginData[0];
+                deviceId = loginData[1];
                 Log.i(TAG, "Login response: " + response.body.toString());
                 Log.i(TAG, "Login response code: " + response.statusCode);
                 if (isRootMatching) {
@@ -120,11 +124,12 @@ public class AccountService {
                         Log.i(TAG, "Root hash does not match, but root data blob is empty, lets do update");
                         Log.i(TAG, "Empty root data blob: " + rootDataBlob);
                         // TODO: make update!
+                        sendUpdate();
                     } else {
                         Log.i(TAG, "Root hash does not match, but root data blob is not empty, lets decrypt it");
                         // TODO: decrypt root data blob
                     }
-                    Log.i(TAG, "Root hash does not match, lets do update");
+
                 }
             } else {
                 Log.i(TAG, "Login failed");
@@ -151,8 +156,25 @@ public class AccountService {
         }
     }
 
-    public void sendUpdate(String updateType) {
+    public void sendUpdate() {
+        if (jwtToken == null || !accountCreated || !connected || userId == null || deviceId == null) {
+            return;
+        }
+        try {
+            String rootDataBlob = dataService.getRootBlob();
+            String fileName = "file_" + dataService.getRootHash();
+            AccountAPI.ApiResponse response = AccountAPI.uploadFile(userId, deviceId, jwtToken, rootDataBlob, fileName);
+            Log.i(TAG, "Update response code: " + response.statusCode);
+            if (response.success && response.statusCode == 200) {
+                Log.i(TAG, "Update response: " + response.body.toString());
+            }
+            if (!response.success && response.statusCode == 409) {
+                Log.i(TAG, "Update failed, update hash already exists");
+            }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void updateNetworkStatus() {

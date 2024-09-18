@@ -46,6 +46,7 @@ public class AccountAPI {
             Response response = client.newCall(request).execute();
             ResponseBody responseBody = response.body();
             if (responseBody == null) {
+                Log.e(TAG, "Response body is null");
                 return null;
             }
             Log.i(TAG, "Response code: " + response.code());
@@ -112,6 +113,49 @@ public class AccountAPI {
             return new ApiResponse(-1, false, "ERROR_" + e.getMessage(), null);
         }
 
+    }
+
+    public static ApiResponse uploadFile(String userId, String deviceId, String token, String data, String fileName) {
+        try {
+            final String method = "PUT";
+            Map<String, String> jsonMap = new HashMap<>();
+            jsonMap.put("data", data);
+            jsonMap.put("fileName", fileName);
+            ObjectMapper objectMapper = new ObjectMapper();
+            String body = objectMapper.writeValueAsString(jsonMap);
+            Log.i(TAG, "Request body: " + body);
+            RequestBody bodyRequest = RequestBody.create(body, JSON);
+            Request request = new Request.Builder()
+                    .url(API_URL + "/upload")
+                    .header("userId", userId)
+                    .header("deviceId", deviceId)
+                    .header("Authorization", "Bearer " + token)
+                    .put(bodyRequest)
+                    .build();
+            Response response = client.newCall(request).execute();
+            ResponseBody responseBody = response.body();
+            if (responseBody == null) {
+                Log.e(TAG, "Response body is null");
+                return null;
+            }
+            Log.i(TAG, "Response code: " + response.code());
+            String responseString = responseBody.string();
+            JSONObject jsonResponse = new JSONObject(responseString);
+            int statusCode = response.code();
+            boolean success = jsonResponse.getBoolean("success");
+            Log.i(TAG, "Response: " + responseString);
+            if (!success) {
+                String error = jsonResponse.getString("error");
+                return new ApiResponse(statusCode, false, "ERROR_" + error, jsonResponse);
+            }
+            return new ApiResponse(statusCode, true, "", jsonResponse);
+        } catch (Exception e) {
+            if (e instanceof IOException) {
+                return new ApiResponse(-1, false, "CONNECTION_ERROR", null);
+            }
+            e.printStackTrace();
+            return new ApiResponse(-1, false, "ERROR_" + e.getMessage(), null);
+        }
     }
 
     public static class ApiResponse {

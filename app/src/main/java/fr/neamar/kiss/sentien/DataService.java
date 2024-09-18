@@ -19,10 +19,14 @@ public class DataService {
     private static final String TAG = "\uD83D\uDCC1 DataService";
     private final DataHandler dataHandler;
     private final Gson gson;
-    private String contactsHash = "";
+
     private String JSON_Contacts = "";
-    private String appsHash = "";
+    private String JSON_ContactsHash = "";
+
     private String JSON_Apps = "";
+    private String JSON_AppsHash = "";
+
+    private String rootBlob = "";
     private String rootHash = "";
 
     public DataService(DataHandler dataHandler) {
@@ -30,8 +34,7 @@ public class DataService {
         gson = new Gson();
         setupContacts();
         setupApps();
-        rootHash = calculateNewRootHash();
-
+        rootBlob = calculateNewRootBlob();
     }
 
     public String getContactsJSON() {
@@ -56,23 +59,27 @@ public class DataService {
         }
     }
 
+    public String getRootBlob() {
+        return rootBlob;
+    }
+
     public String getRootHash() {
         return rootHash;
     }
 
-    private String calculateNewRootHash() {
+    private String calculateNewRootBlob() {
         try {
             Map<String, String> jsonMap = new HashMap<>();
-            appsHash = CryptoService.generateSHA256(JSON_Apps);
-            jsonMap.put("apps", appsHash);
-            contactsHash = CryptoService.generateSHA256(JSON_Contacts);
-            jsonMap.put("contacts", contactsHash);
+            JSON_ContactsHash = CryptoService.generateSHA256(JSON_Apps);
+            jsonMap.put("apps", JSON_ContactsHash);
+            JSON_AppsHash = CryptoService.generateSHA256(JSON_Contacts);
+            jsonMap.put("contacts", JSON_AppsHash);
             String clipboardText = ClipboardService.getClipboardText();
             jsonMap.put("clipboardText", clipboardText);
             ObjectMapper objectMapper = new ObjectMapper();
             String body = objectMapper.writeValueAsString(jsonMap);
-            Log.i(TAG, "Root hash body: " + body);
-            return CryptoService.generateSHA256(body);
+            rootHash = CryptoService.generateSHA256(body);
+            return body;
         } catch (Exception e) {
             e.printStackTrace();
             return "";
