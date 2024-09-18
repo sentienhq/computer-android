@@ -19,7 +19,7 @@ public class ClipboardService {
         clipboardManager.addPrimaryClipChangedListener(ClipboardService.listener);
     }
 
-    private static String getClipboardText() {
+    public static String getClipboardText() {
         if (clipboardManager != null && clipboardManager.hasPrimaryClip()) {
             ClipData clip = clipboardManager.getPrimaryClip();
             if (clip != null) {

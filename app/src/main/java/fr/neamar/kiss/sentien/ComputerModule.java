@@ -29,12 +29,12 @@ public class ComputerModule {
 
     public ComputerModule(Context context, DataHandler dataHandler, SharedPreferences prefs) {
         try {
+            dataService = new DataService(dataHandler);
             cryptoService = new CryptoService(context);
-            accountService = new AccountService(context, prefs, cryptoService);
+            accountService = new AccountService(context, prefs, cryptoService, dataService);
 
             clipboardService = new ClipboardService(context);
 
-            dataService = new DataService(dataHandler);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

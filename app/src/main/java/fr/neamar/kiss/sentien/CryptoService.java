@@ -9,6 +9,8 @@ import android.util.Base64;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -94,6 +96,16 @@ public class CryptoService {
             hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    public static String generateSHA256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void generateAndStoreKeys() throws Exception {
@@ -225,7 +237,8 @@ public class CryptoService {
         return UUID.randomUUID().toString();
     }
 
-    public Object generateRegistrationObject() {
+    // return [user_id, device_id, public_key, signature] in hex
+    public String[] generateRegistrationData() {
         try {
             if (!isInitialized) {
                 throw new RuntimeException("CryptoService is not initialized");
@@ -246,14 +259,43 @@ public class CryptoService {
             if (result != 0) {
                 throw new RuntimeException("Failed to sign message");
             }
-            Log.i(TAG, "Signature in hex: " + bytesToHex(signature));
-
             result = Sodium.crypto_sign_verify_detached(signature, signingMaterialBytes, signingMaterialBytes.length, publicKey);
             if (result != 0) {
                 throw new RuntimeException("Signature verification failed");
             }
-            // return signed_message;
-            return new Object();
+            Log.i(TAG, "Signature verified");
+            return new String[]{userId, deviceId, bytesToHex(publicKey), bytesToHex(signature)};
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String[] generateLoginData(String rootHash) {
+        try {
+            if (!isInitialized) {
+                throw new RuntimeException("CryptoService is not initialized");
+            }
+            if (!hasCredentials) {
+                throw new RuntimeException("No credentials found");
+            }
+            // Generate Ed25519 keypair from the sync seed
+            byte[] publicKey = new byte[Sodium.crypto_sign_publickeybytes()];
+            byte[] secretKey = new byte[Sodium.crypto_sign_secretkeybytes()];
+            Sodium.crypto_sign_seed_keypair(publicKey, secretKey, syncKeypair.getPrivateKey().toBytes());
+            final String signingMaterial = userId + ":" + rootHash + ":" + deviceId;
+            final byte[] signingMaterialBytes = signingMaterial.getBytes(StandardCharsets.UTF_8);
+            byte[] signature = new byte[Sodium.crypto_sign_bytes()];
+            int[] signatureLengthArray = new int[1];
+            int result = Sodium.crypto_sign_detached(signature, signatureLengthArray, signingMaterialBytes, signingMaterialBytes.length, secretKey);
+            if (result != 0) {
+                throw new RuntimeException("Failed to sign message");
+            }
+            result = Sodium.crypto_sign_verify_detached(signature, signingMaterialBytes, signingMaterialBytes.length, publicKey);
+            if (result != 0) {
+                throw new RuntimeException("Signature verification failed");
+            }
+            Log.i(TAG, "Signature verified");
+            return new String[]{userId, deviceId, bytesToHex(signature)};
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

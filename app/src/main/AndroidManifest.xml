@@ -5,6 +5,7 @@
     <!-- Self explanatory -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- To call a phone number directly without displaying the dialer -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <!-- To read phone state -->
@@ -45,8 +46,9 @@
         android:resizeableActivity="true"
         android:supportsRtl="true"
         android:theme="@style/AppThemeLight"
+        android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-
+        <!--Remove android:usesCleartextTraffic="true" to enable https for production-->
         <!--
         clearTaskOnLaunch: when viewing kiss settings, display the main activity when pressing home https://github.com/Neamar/KISS/issues/117
         launchMode=singleTop: call onNewIntent() when pressing home again while already viewing main activity, also redisplay main activity when viewing full-screen contact from picture
