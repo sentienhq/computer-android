@@ -60,9 +60,8 @@ public class ExperienceTweaks extends Forwarder {
     private static final String TAG = ExperienceTweaks.class.getSimpleName();
 
     private final Runnable displayKeyboardRunnable = mainActivity::showKeyboard;
-
-    private View mainEmptyView;
     private final GestureDetector gd;
+    private View mainEmptyView;
     private int lastHeight = 0;
 
     ExperienceTweaks(final MainActivity mainActivity) {
@@ -222,6 +221,19 @@ public class ExperienceTweaks extends Forwarder {
         });
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
+    public static void setRequestedOrientation(Activity activity, SharedPreferences prefs) {
+        if (prefs.getBoolean("force-portrait", true)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
+            } else {
+                activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
+        } else {
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+        }
+    }
+
     void onCreate() {
         mainEmptyView = mainActivity.findViewById(R.id.main_empty);
     }
@@ -376,11 +388,11 @@ public class ExperienceTweaks extends Forwarder {
     }
 
     private boolean isMinimalisticModeEnabled() {
-        return prefs.getBoolean("history-hide", false);
+        return prefs.getBoolean("history-hide", true);
     }
 
     private boolean isMinimalisticModeEnabledForFavorites() {
-        return isMinimalisticModeEnabled() && prefs.getBoolean("favorites-hide", false) && prefs.getBoolean("enable-favorites-bar", true);
+        return isMinimalisticModeEnabled() && prefs.getBoolean("favorites-hide", true) && prefs.getBoolean("enable-favorites-bar", false);
     }
 
     /**
@@ -397,7 +409,7 @@ public class ExperienceTweaks extends Forwarder {
      * Should the keyboard be displayed by default?
      */
     private boolean isKeyboardOnStartEnabled() {
-        return prefs.getBoolean("display-keyboard", false);
+        return prefs.getBoolean("display-keyboard", true);
     }
 
     /**
@@ -434,18 +446,5 @@ public class ExperienceTweaks extends Forwarder {
         }
 
         return false;
-    }
-
-    @SuppressLint("SourceLockedOrientationActivity")
-    public static void setRequestedOrientation(Activity activity, SharedPreferences prefs) {
-        if (prefs.getBoolean("force-portrait", true)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
-            } else {
-                activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            }
-        } else {
-            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
-        }
     }
 }

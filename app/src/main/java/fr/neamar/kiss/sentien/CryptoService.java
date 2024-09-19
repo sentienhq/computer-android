@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -57,7 +58,8 @@ public class CryptoService {
     private String deviceId = "";
     private String userId = "";
     private boolean isInitialized = false;
-    private boolean hasCredentials = false;
+    private boolean hasDeviceCredentials = false;
+    private boolean hasUserCredentials = false;
 
     CryptoService(Context context) {
         try {
@@ -71,15 +73,23 @@ public class CryptoService {
             }
             SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-            if (!prefs.contains(USER_KEY_PREF) || !prefs.contains(SYNC_KEY_PREF)) {
-                Log.i(TAG, "No account found, creating new one");
-                generateAndStoreKeys();
-                hasCredentials = true;
+            if (!prefs.contains(SYNC_KEY_PREF)) {
+                Log.i(TAG, "No device keys found, creating new one");
+                generateAndStoreSyncKeys();
+                hasDeviceCredentials = true;
             } else {
-                Log.i(TAG, "Found account");
-                loadExistingKeys();
-                hasCredentials = true;
+                Log.i(TAG, "Found device keys");
+                loadExistingSyncKeys();
+                hasDeviceCredentials = true;
+                if (prefs.contains(USER_KEY_PREF)) {
+                    Log.i(TAG, "Found user keys");
+                    loadExistingUserKeys();
+                } else {
+                    Log.i(TAG, "No user keys found, creating new one?");
+                    hasUserCredentials = false;
+                }
             }
+            // !prefs.contains(USER_KEY_PREF) ||
             isInitialized = true;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -108,60 +118,61 @@ public class CryptoService {
         }
     }
 
-    private void generateAndStoreKeys() throws Exception {
-        byte[] userSeed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
+    private void generateAndStoreSyncKeys() throws Exception {
+        //byte[] userSeed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
         byte[] syncSeed = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
 
-        userKeypair = new KeyPair(userSeed);
         syncKeypair = new KeyPair(syncSeed);
 
         deviceId = "device_" + generateUUIDv4();
-        userId = "user_" + bytesToHex(calculateHMAC(syncKeypair.getPrivateKey().toBytes(), "user_id".getBytes(), 4000)).substring(0, 18);
 
-        byte[] encryptedUserKey = encryptData(userSeed);
+        //byte[] encryptedUserKey = encryptData(userSeed);
         byte[] encryptedSyncKey = encryptData(syncSeed);
 
         SharedPreferences.Editor editor = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit();
-        editor.putString(USER_KEY_PREF, bytesToBase64(encryptedUserKey));
+        // editor.putString(USER_KEY_PREF, bytesToBase64(encryptedUserKey));
         editor.putString(SYNC_KEY_PREF, bytesToBase64(encryptedSyncKey));
         editor.putString(DEVICE_ID_PREF, deviceId);
-        editor.putString(USER_ID_PREF, userId);
-
         editor.apply();
 
-        Log.i(TAG, "Generated user public key: " + userKeypair.getPublicKey().toString());
         Log.i(TAG, "Generated sync public key: " + syncKeypair.getPublicKey().toString());
         Log.i(TAG, "Generated device id: " + deviceId);
-        Log.i(TAG, "Generated user id: " + userId);
     }
 
-    private void loadExistingKeys() throws Exception {
+    private void loadExistingSyncKeys() throws Exception {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        byte[] encryptedUserKey = base64ToBytes(prefs.getString(USER_KEY_PREF, ""));
         byte[] encryptedSyncKey = base64ToBytes(prefs.getString(SYNC_KEY_PREF, ""));
-        byte[] userSeed;
         byte[] syncSeed;
         try {
-            userSeed = decryptData(encryptedUserKey);
             syncSeed = decryptData(encryptedSyncKey);
         } catch (Exception e) {
-            // Key is corrupted, generate new ones
             Log.i(TAG, "Key is corrupted, generating new ones");
             generateLocalAESKey();
-            generateAndStoreKeys();
+            generateAndStoreSyncKeys();
             return;
         }
-
-        userKeypair = new KeyPair(userSeed);
         syncKeypair = new KeyPair(syncSeed);
-
-        userId = prefs.getString(USER_ID_PREF, "");
         deviceId = prefs.getString(DEVICE_ID_PREF, "");
-
-        Log.i(TAG, "Loaded user public key: " + userKeypair.getPublicKey().toString());
         Log.i(TAG, "Loaded sync public key: " + syncKeypair.getPublicKey().toString());
         Log.i(TAG, "Loaded device id: " + deviceId);
+    }
+
+    private void loadExistingUserKeys() throws Exception {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        byte[] encryptedUserKey = base64ToBytes(prefs.getString(USER_KEY_PREF, ""));
+        byte[] userSeed;
+        try {
+            userSeed = decryptData(encryptedUserKey);
+        } catch (Exception e) {
+            // Key is corrupted, aborting
+            Log.i(TAG, "User Key is corrupted!!! ");
+            return;
+        }
+        userKeypair = new KeyPair(userSeed);
+        userId = "user_" + bytesToHex(calculateHMAC(userKeypair.getPrivateKey().toBytes(), "user_id".getBytes(), 4128)).substring(0, 18);
+        Log.i(TAG, "Loaded user public key: " + userKeypair.getPublicKey().toString());
         Log.i(TAG, "Loaded user id: " + userId);
+        hasUserCredentials = true;
     }
 
     public String bytesToBase64(byte[] input) {
@@ -216,22 +227,40 @@ public class CryptoService {
         keyGenerator.generateKey();
     }
 
-    public boolean isInitialized() {
-        return isInitialized;
-    }
-
-    public boolean hasCredentials() {
-        return hasCredentials;
-    }
-
-    public String generateRandomAESEncKey() {
+    public byte[] generateRandomAES256Key() {
         try {
-            byte[] key = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
-            return bytesToHex(key);
+            final int size = 256;
+            return new Random().randomBytes(size);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+
+    public boolean isInitialized() {
+        return isInitialized;
+    }
+
+    public boolean deviceCredentialsActive() {
+        return hasDeviceCredentials;
+    }
+
+    public boolean userCredentialsActive() {
+        return hasUserCredentials;
+    }
+
+    public boolean hasAllCredentailsActive() {
+        return hasDeviceCredentials && hasUserCredentials;
+    }
+//
+//    public String generateRandomAESEncKey() {
+//        try {
+//            byte[] key = new Random().randomBytes(SodiumConstants.SECRETKEY_BYTES);
+//            return bytesToHex(key);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public String generateUUIDv4() {
         return UUID.randomUUID().toString();
@@ -243,8 +272,8 @@ public class CryptoService {
             if (!isInitialized) {
                 throw new RuntimeException("CryptoService is not initialized");
             }
-            if (!hasCredentials) {
-                throw new RuntimeException("No credentials found");
+            if (!hasDeviceCredentials) {
+                throw new RuntimeException("No device credentials found");
             }
             // Generate Ed25519 keypair from the sync seed
             byte[] publicKey = new byte[Sodium.crypto_sign_publickeybytes()];
@@ -275,8 +304,8 @@ public class CryptoService {
             if (!isInitialized) {
                 throw new RuntimeException("CryptoService is not initialized");
             }
-            if (!hasCredentials) {
-                throw new RuntimeException("No credentials found");
+            if (!hasDeviceCredentials) {
+                throw new RuntimeException("No device credentials found");
             }
             // Generate Ed25519 keypair from the sync seed
             byte[] publicKey = new byte[Sodium.crypto_sign_publickeybytes()];

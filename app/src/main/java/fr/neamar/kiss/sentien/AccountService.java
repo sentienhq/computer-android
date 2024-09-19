@@ -42,6 +42,7 @@ public class AccountService {
     private String userId;
     private String deviceId;
     private String jwtToken;
+    private String accountStatus = "not_created"; // not_created, awaiting_to_join, active
 
     AccountService(Context context, SharedPreferences prefs, CryptoService cryptoService, DataService dataService) {
         this.context = context;
@@ -68,7 +69,9 @@ public class AccountService {
                 loginAccount(prefsCM);   // login!
                 return;
             } else {
-                registerAccount(prefsCM);
+                Log.i(TAG, "Account not created, creating new one? Ask user to create account or join existing one");
+                accountStatus = "not_created";
+                // registerAccount(prefsCM);
             }
         }
     }
@@ -83,8 +86,6 @@ public class AccountService {
             prefsCM.edit().putBoolean(ACCOUNT_CREATED_PREF, true).apply();
             Log.i(TAG, "Account created" + response.body.toString());
         } else {
-            accountCreated = false;
-            prefsCM.edit().putBoolean(ACCOUNT_CREATED_PREF, false).apply();
             if (response != null) {
                 if (response.error.equals("CONNECTION_ERROR")) {
                     Log.i(TAG, "Account creation failed, connection error, server is down!");
@@ -95,6 +96,8 @@ public class AccountService {
                     loginAccount(prefsCM);
                 }
             } else {
+                accountCreated = false;
+                prefsCM.edit().putBoolean(ACCOUNT_CREATED_PREF, false).apply();
                 Log.i(TAG, "Account creation failed and no response");
             }
         }
@@ -115,6 +118,7 @@ public class AccountService {
                 prefsCM.edit().putBoolean(ACCOUNT_CREATED_PREF, true).apply();
                 userId = loginData[0];
                 deviceId = loginData[1];
+                accountStatus = "active";
                 Log.i(TAG, "Login response: " + response.body.toString());
                 Log.i(TAG, "Login response code: " + response.statusCode);
                 if (isRootMatching) {
@@ -194,6 +198,14 @@ public class AccountService {
                         activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
                         activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)
         );
+    }
+
+    public String getAccountStatus() {
+        return accountStatus;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     public String getDeviceName() {

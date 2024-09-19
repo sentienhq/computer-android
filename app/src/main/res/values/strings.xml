@@ -121,6 +121,7 @@
     <string name="settings_accessibility">Accessibility</string>
     <string name="settings_sound">Sound and volume</string>
     <string name="settings_display">Display</string>
+    <string name="manu_computer_module">Computer account</string>
     <string name="menu_wallpaper">Update wallpaper…</string>
     <string name="application_not_found">Whoops… unable to launch that app.</string>
     <string name="history_erased">History erased.</string>

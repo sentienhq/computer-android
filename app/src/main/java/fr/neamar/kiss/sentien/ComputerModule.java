@@ -16,8 +16,8 @@ import fr.neamar.kiss.DataHandler;
 public class ComputerModule {
     public static final String MODULE_NAME = "Computer";
     public static final String MODULE_VERSION = "0.0.1";
-    private static final String TAG = "ComputerModule";
-    private boolean enabled = false;
+    private static final String TAG = "\uD83D\uDCBB ComputerModule";
+    private boolean enabled = true;
 
     private ClipboardManager clipboardManager;
 
@@ -33,7 +33,7 @@ public class ComputerModule {
             cryptoService = new CryptoService(context);
             dataService = new DataService(dataHandler);
             accountService = new AccountService(context, prefs, cryptoService, dataService);
-            clipboardService = new ClipboardService(context, accountService);
+            //  clipboardService = new ClipboardService(context, accountService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -50,5 +50,20 @@ public class ComputerModule {
 
     public void checkForUpdates() {
         Log.i(MODULE_NAME, "Checking for updates. Is enabled: " + isEnabled());
+    }
+
+    public String getAccountResourceURL() {
+        if (accountService != null) {
+            String accountStatus = accountService.getAccountStatus();
+            switch (accountStatus) {
+                case "not_created":
+                    return AccountAPI.URL + "/account/welcome";
+                case "awaiting_to_join":
+                    return AccountAPI.URL + "/account/joining";
+                case "active":
+                    return AccountAPI.URL + "/account/dashboard/" + accountService.getUserId();
+            }
+        }
+        return "";
     }
 }

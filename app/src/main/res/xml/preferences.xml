@@ -277,7 +277,7 @@
         android:title="@string/title_ux">
         <PreferenceCategory android:title="@string/keyboard_options">
             <fr.neamar.kiss.preference.SwitchPreference
-                android:defaultValue="false"
+                android:defaultValue="true"
                 android:key="display-keyboard"
                 android:title="@string/keyboard_name" />
             <fr.neamar.kiss.preference.SwitchPreference
@@ -289,12 +289,12 @@
             android:key="history-hide-section"
             android:title="@string/history_hide_name">
             <fr.neamar.kiss.preference.SwitchPreference
-                android:defaultValue="false"
+                android:defaultValue="true"
                 android:key="history-hide"
                 android:summary="@string/history_hide_desc"
                 android:title="@string/history_hide_name" />
             <fr.neamar.kiss.preference.SwitchPreference
-                android:defaultValue="false"
+                android:defaultValue="true"
                 android:dependency="history-hide"
                 android:key="history-onclick"
                 android:title="@string/history_onclick_name" />
@@ -305,7 +305,7 @@
                 android:summary="@string/history_onkeyboard_desc"
                 android:title="@string/history_onkeyboard_name" />
             <fr.neamar.kiss.preference.SwitchPreference
-                android:defaultValue="false"
+                android:defaultValue="true"
                 android:dependency="history-hide"
                 android:key="favorites-hide"
                 android:title="@string/favorites_hide" />

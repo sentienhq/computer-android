@@ -17,6 +17,7 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -36,6 +37,8 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.AbsListView;
 import android.widget.PopupWindow;
 
@@ -292,11 +295,11 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 if (adapter.isEmpty()) {
                     // Display help text when no results available
                     listContainer.setVisibility(View.GONE);
-                    emptyListView.setVisibility(View.VISIBLE);
+                    // emptyListView.setVisibility(View.VISIBLE);
                 } else {
                     // Otherwise, display results
                     listContainer.setVisibility(View.VISIBLE);
-                    emptyListView.setVisibility(View.GONE);
+                    // emptyListView.setVisibility(View.GONE);
                 }
 
                 forwarderManager.onDataSetChanged();
@@ -531,6 +534,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         return super.onKeyDown(keycode, e);
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (forwarderManager.onOptionsItemSelected(item)) {
@@ -538,7 +542,30 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         }
 
         int itemId = item.getItemId();
-        if (itemId == R.id.settings) {
+        if (itemId == R.id.computer_module) {
+            // startActivity(new Intent(this, WebViewActivity.class));
+            if (computerModule != null) {
+                String resourceURL = computerModule.getAccountResourceURL();
+                if (!resourceURL.isEmpty()) {
+                    // hide keyboard
+                    hideKeyboard();
+
+                    // show webview
+                    WebView myWebView = findViewById(R.id.webview);
+                    WebSettings webSettings = myWebView.getSettings();
+                    webSettings.setJavaScriptEnabled(true);
+                    webSettings.setDomStorageEnabled(true);
+                    webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+                    WebView.setWebContentsDebuggingEnabled(true);
+//                    webAppInterface = new WebAppInterface(MainActivity.this, DEVICE_ID);
+//                    myWebView.addJavascriptInterface(webAppInterface, "Android");
+                    myWebView.loadUrl(resourceURL);
+                    myWebView.setVisibility(View.VISIBLE);
+                    myWebView.bringToFront();
+                }
+            }
+            return true;
+        } else if (itemId == R.id.settings) {
             startActivity(new Intent(Settings.ACTION_SETTINGS));
             return true;
         } else if (itemId == R.id.wallpaper) {

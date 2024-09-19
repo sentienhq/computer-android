@@ -63,6 +63,31 @@ class Widgets extends Forwarder {
         super(mainActivity);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    private static void requestBindWidget(@NonNull Activity activity, @NonNull Intent data) {
+        final int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
+        final ComponentName provider = data.getParcelableExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER);
+        final UserHandle profile;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            profile = data.getParcelableExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE);
+        } else {
+            profile = null;
+        }
+
+        new Handler().postDelayed(() -> {
+            Log.d(TAG, "asking for permission");
+
+            Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, profile);
+            }
+
+            activity.startActivityForResult(intent, REQUEST_APPWIDGET_BOUND);
+        }, 500);
+    }
+
     void onCreate() {
         // Initialize widget manager and host, restore widgets
         mAppWidgetManager = AppWidgetManager.getInstance(mainActivity);
@@ -149,7 +174,7 @@ class Widgets extends Forwarder {
     }
 
     void onCreateContextMenu(ContextMenu menu) {
-        if (!prefs.getBoolean("history-hide", false)) {
+        if (!prefs.getBoolean("history-hide", true)) {
             menu.findItem(R.id.add_widget).setVisible(false);
         }
     }
@@ -185,7 +210,7 @@ class Widgets extends Forwarder {
     @SuppressWarnings("StringSplitter")
     private void restoreWidgets() {
         // only add widgets if in minimal mode
-        if (!prefs.getBoolean("history-hide", false)) {
+        if (!prefs.getBoolean("history-hide", true)) {
             return;
         }
 
@@ -409,31 +434,6 @@ class Widgets extends Forwarder {
         addWidget(appWidgetId, lineSize);
 
         serializeState();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private static void requestBindWidget(@NonNull Activity activity, @NonNull Intent data) {
-        final int appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
-        final ComponentName provider = data.getParcelableExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER);
-        final UserHandle profile;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            profile = data.getParcelableExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE);
-        } else {
-            profile = null;
-        }
-
-        new Handler().postDelayed(() -> {
-            Log.d(TAG, "asking for permission");
-
-            Intent intent = new Intent(AppWidgetManager.ACTION_APPWIDGET_BIND);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER_PROFILE, profile);
-            }
-
-            activity.startActivityForResult(intent, REQUEST_APPWIDGET_BOUND);
-        }, 500);
     }
 
     /**
