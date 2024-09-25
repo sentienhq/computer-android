@@ -6,8 +6,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -65,6 +67,7 @@ import fr.neamar.kiss.searcher.Searcher;
 import fr.neamar.kiss.searcher.TagsSearcher;
 import fr.neamar.kiss.searcher.UntaggedSearcher;
 import fr.neamar.kiss.sentien.ComputerModule;
+import fr.neamar.kiss.sentien.WebAppInterface;
 import fr.neamar.kiss.ui.AnimatedListView;
 import fr.neamar.kiss.ui.BottomPullEffectView;
 import fr.neamar.kiss.ui.KeyboardScrollHider;
@@ -169,7 +172,50 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
     private ForwarderManager forwarderManager;
     private Permission permissionManager;
 
+    private WebAppInterface webAppInterface;
     private ComputerModule computerModule;
+
+    public boolean isDefaultLauncher() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        ResolveInfo resolveInfo = getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return resolveInfo != null && resolveInfo.activityInfo.packageName.equals(getPackageName());
+    }
+
+    public void promptToSetDefaultLauncher() {
+
+        // get packet manager
+        PackageManager packageManager = getPackageManager();
+        // get dummyActivity
+        ComponentName componentName = new ComponentName(this, DummyActivity.class);
+        // enable dummyActivity (it starts disabled in the manifest.xml)
+        packageManager.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+
+        // create a new (implicit) intent with MAIN action
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        // add HOME category to it
+        intent.addCategory(Intent.CATEGORY_HOME);
+        // launch intent
+        startActivity(intent);
+
+        // disable dummyActivity once again
+        packageManager.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+    }
+
+    private void showLauncherPrompt() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Set as Default Launcher")
+                .setMessage("To use this app as your default home launcher, please set it as the default launcher.")
+                .setPositiveButton("Set Now", (dialog, id) -> {
+                    // Launch the intent to set the default launcher
+                    promptToSetDefaultLauncher();
+                })
+                .setNegativeButton("Cancel", (dialog, id) -> {
+                    dialog.dismiss();
+                });
+        builder.create().show();
+    }
+
 
     /**
      * Called when the activity is first created.
@@ -212,6 +258,9 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                     Log.v(TAG, "All providers are done loading.");
 
                     displayLoader(false);
+                    if (!isDefaultLauncher()) {
+                        showLauncherPrompt(); // Show a dialog asking the user to set the app as the default launcher
+                    }
 
                     try {
                         computerModule = new ComputerModule(context, KissApplication.getApplication(context).getDataHandler(), prefs);
@@ -535,7 +584,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         return super.onKeyDown(keycode, e);
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (forwarderManager.onOptionsItemSelected(item)) {
@@ -555,11 +604,11 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                     WebView myWebView = findViewById(R.id.webview);
                     WebSettings webSettings = myWebView.getSettings();
                     webSettings.setJavaScriptEnabled(true);
-                    webSettings.setDomStorageEnabled(true);
+                    // webSettings.setDomStorageEnabled(true);
                     webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-                    WebView.setWebContentsDebuggingEnabled(true);
-//                    webAppInterface = new WebAppInterface(MainActivity.this, DEVICE_ID);
-//                    myWebView.addJavascriptInterface(webAppInterface, "Android");
+                    // WebView.setWebContentsDebuggingEnabled(true);
+                    webAppInterface = new WebAppInterface(MainActivity.this, computerModule);
+                    myWebView.addJavascriptInterface(webAppInterface, "AndroidComputerModule");
                     myWebView.loadUrl(resourceURL);
                     myWebView.setVisibility(View.VISIBLE);
                     myWebView.bringToFront();
