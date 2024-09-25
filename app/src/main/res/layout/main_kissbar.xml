@@ -6,6 +6,7 @@
     android:background="@color/kiss_green"
     android:clipToPadding="false"
     android:elevation="2dp"
+    
     tools:ignore="UnusedAttribute">
 
     <ImageView
@@ -29,6 +30,7 @@
         android:id="@+id/embeddedFavoritesBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bar_height"
+
         android:layout_toEndOf="@+id/whiteLauncherButton"
         android:layout_toRightOf="@+id/whiteLauncherButton"
         android:gravity="center_vertical"

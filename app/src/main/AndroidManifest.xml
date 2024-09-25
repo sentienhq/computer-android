@@ -40,12 +40,12 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_descriptor"
         android:hardwareAccelerated="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/ic_launcher_white"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
         android:resizeableActivity="true"
         android:supportsRtl="true"
-        android:theme="@style/AppThemeLight"
+        android:theme="@style/AppThemeSemiTransparentDark"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
         <!--Remove android:usesCleartextTraffic="true" to enable https for production-->

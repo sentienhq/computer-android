@@ -72,7 +72,7 @@ public class AddSearchProviderPreference extends DialogPreference {
         layout.addView(providerUri, layoutParams);
 
         // default text color is white that doesn't work well on the light themes
-        String theme = prefs.getString("theme", "light");
+        String theme = prefs.getString("theme", "dark");
         //if theme is light, change the text color
         if (!theme.contains("dark")) {
             @SuppressLint("ResourceType") @StyleableRes

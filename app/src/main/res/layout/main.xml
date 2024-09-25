@@ -93,11 +93,11 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="25dp"
         android:background="?attr/searchBackgroundColor"
         android:clipToPadding="false"
         android:elevation="2dp"
@@ -124,7 +124,7 @@
                 android:paddingLeft="@dimen/launcher_button_padding"
                 android:paddingEnd="@dimen/launcher_button_padding"
                 android:paddingRight="@dimen/launcher_button_padding"
-                android:src="@drawable/ic_launcher"
+                android:src="@drawable/ic_launcher_white"
                 android:tag="showMenu" />
 
             <ProgressBar
@@ -132,6 +132,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:indeterminate="true"
+                android:indeterminateTint="@color/computer_orange"
+                android:indeterminateTintMode="src_atop"
                 android:paddingStart="@dimen/launcher_button_padding"
                 android:paddingLeft="@dimen/launcher_button_padding"
                 android:paddingEnd="@dimen/launcher_button_padding"
@@ -145,7 +147,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_centerVertical="true"
-            android:layout_margin="1dp"
+            android:layout_marginStart="-5dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
             android:layout_toStartOf="@id/rightHandSideButtonsWrapper"
             android:layout_toLeftOf="@id/rightHandSideButtonsWrapper"
             android:layout_toEndOf="@id/leftHandSideButtonsWrapper"
@@ -159,7 +163,7 @@
             android:singleLine="true"
             android:textColor="?attr/searchColor"
             android:textColorHint="?android:attr/textColorSecondary"
-            android:textCursorDrawable="@null"
+            android:textCursorDrawable="@drawable/rounded_search_bar_pre21_dark"
             android:textDirection="locale"
             android:textSize="16sp" />
 
@@ -227,7 +231,11 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
-        android:layout_margin="10dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="25dp"
         android:visibility="gone"
         tools:ignore="DuplicateIncludedIds" />
 

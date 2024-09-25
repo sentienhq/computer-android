@@ -12,4 +12,6 @@
     <color name="kiss_background_light_transparent">#88FFFFFF</color>
     <color name="kiss_background_dark_transparent">#88222222</color>
     <color name="kiss_green_semitransparent">#884caf50</color>
+
+    <color name="computer_orange">#FF5722</color>
 </resources>

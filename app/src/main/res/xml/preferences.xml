@@ -32,9 +32,9 @@
             android:summary="@string/freeze_history_summary"
             android:title="@string/freeze_history_name" />
         <PreferenceCategory
+            android:key="alternate-history-inputs-section"
             android:order="50"
-            android:title="@string/alternate_history_inputs"
-            android:key="alternate-history-inputs-section">
+            android:title="@string/alternate_history_inputs">
             <fr.neamar.kiss.preference.SwitchPreference
                 android:defaultValue="false"
                 android:key="enable-phone-history"
@@ -112,7 +112,7 @@
         android:summary="@string/user_interface_summary"
         android:title="@string/title_ui">
         <ListPreference
-            android:defaultValue="transparent"
+            android:defaultValue="transparent-dark"
             android:entries="@array/themesEntries"
             android:entryValues="@array/themesValues"
             android:key="theme"

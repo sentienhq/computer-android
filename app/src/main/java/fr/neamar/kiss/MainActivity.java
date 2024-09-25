@@ -496,7 +496,8 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
 
     public void clearSearchText() {
         searchEditText.setText("");
-        searchEditText.setCursorVisible(false);
+        searchEditText.setCursorVisible(true);
+        searchEditText.requestFocus();
     }
 
     @Override

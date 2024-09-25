@@ -33,7 +33,7 @@ public class InterfaceTweaks extends Forwarder {
     }
 
     private static void applyTheme(Activity act, SharedPreferences prefs) {
-        String theme = prefs.getString("theme", "transparent");
+        String theme = prefs.getString("theme", "transparent-dark");
         switch (theme) {
             case "dark":
                 act.setTheme(R.style.AppThemeDark);
@@ -79,7 +79,7 @@ public class InterfaceTweaks extends Forwarder {
     }
 
     public static void applySettingsTheme(Activity act, SharedPreferences prefs) {
-        String theme = prefs.getString("theme", "light");
+        String theme = prefs.getString("theme", "dark");
         if (theme.equals("amoled-dark")) {
             act.setTheme(R.style.SettingThemeAmoledDark);
         } else if (theme.contains("dark")) {
