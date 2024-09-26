@@ -604,9 +604,9 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                     WebView myWebView = findViewById(R.id.webview);
                     WebSettings webSettings = myWebView.getSettings();
                     webSettings.setJavaScriptEnabled(true);
-                    // webSettings.setDomStorageEnabled(true);
+                    webSettings.setDomStorageEnabled(true);
                     webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-                    // WebView.setWebContentsDebuggingEnabled(true);
+                    WebView.setWebContentsDebuggingEnabled(true);
                     webAppInterface = new WebAppInterface(MainActivity.this, computerModule);
                     myWebView.addJavascriptInterface(webAppInterface, "AndroidComputerModule");
                     myWebView.loadUrl(resourceURL);
