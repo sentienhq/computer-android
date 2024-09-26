@@ -25,6 +25,8 @@ import fr.neamar.kiss.utils.ViewGroupUtils;
 
 // Deals with any settings in the "User Interface" setting sub-screen
 public class InterfaceTweaks extends Forwarder {
+    private static final String TAG = InterfaceTweaks.class.getSimpleName();
+
     InterfaceTweaks(MainActivity mainActivity) {
         super(mainActivity);
 

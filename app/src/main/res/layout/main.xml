@@ -109,13 +109,15 @@
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
-            android:layout_centerVertical="true">
+            android:layout_centerVertical="true"
+            android:alpha="0.6">
 
 
             <ImageView
                 android:id="@+id/launcherButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+
                 android:background="?attr/appSelectableItemBackground"
                 android:contentDescription="@string/main_kiss"
                 android:focusable="true"
@@ -173,7 +175,8 @@
             android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_centerVertical="true">
+            android:layout_centerVertical="true"
+            android:alpha="0.7">
 
             <ImageView
                 android:id="@+id/menuButton"

@@ -97,9 +97,8 @@
 
     <style name="AppThemeTransparentDark" parent="AppThemeDark">
         <item name="listBackgroundColor">@android:color/transparent</item>
-        <item name="android:textColor">@color/computer_orange</item>
-        <item name="searchBackgroundColor">@color/computer_orange</item>
-        <item name="android:actionMenuTextColor">@color/computer_orange</item>
+        <item name="searchBackgroundColor">@color/computer_orange_dark_search</item>
+        <item name="android:colorPrimaryDark">@android:color/transparent</item>
         <item name="dividerDrawable">@null</item>
         <item name="textShadowRadius">3</item>
     </style>
