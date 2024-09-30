@@ -58,5 +58,7 @@
     <dimen name="favorite_height">58dp</dimen>
     <dimen name="large_favorite_height">68dp</dimen>
 
+    <dimen name="special_search_bar_height">42dp</dimen>
+
     <dimen name="popup_title">12sp</dimen>
 </resources>

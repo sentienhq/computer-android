@@ -30,7 +30,7 @@
         android:id="@+id/resultLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/externalFavoriteBar"
+        android:layout_above="@id/computerSearchBar"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="false"
@@ -64,6 +64,83 @@
             android:layout_gravity="center_horizontal|bottom" />
 
     </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/computerSearchBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/special_search_bar_height"
+        android:layout_above="@id/externalFavoriteBar"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="5dp"
+        android:animateLayoutChanges="true"
+        android:background="@android:color/transparent"
+        android:baselineAligned="false"
+        android:clipToPadding="false"
+        android:elevation="2dp"
+        android:gravity="center_vertical"
+        android:importantForAccessibility="no"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:ignore="UnusedAttribute"
+        tools:layout="@layout/favorite_item"
+        tools:visibility="gone">
+
+        <Button
+            android:id="@+id/resetDatesButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="2dp"
+            android:layout_weight=".3"
+            android:background="@drawable/rounded_search_bar"
+            android:drawableStart="@drawable/computer_search"
+            android:drawablePadding="-17dp"
+            android:drawableTint="@color/kiss_text_on_dark"
+            android:onClick="searchOnline"
+            android:paddingStart="25dp"
+            android:radius="10dp"
+            android:text="Search"
+            android:textAllCaps="false"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/homeButtonSearch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:layout_weight=".3"
+            android:background="@drawable/rounded_search_bar"
+            android:drawableStart="@drawable/computer_note"
+            android:drawablePadding="-12dp"
+            android:drawableTint="@color/kiss_text_on_dark"
+            android:onClick="addNote"
+            android:paddingStart="25dp"
+            android:text="Add note"
+            android:textAllCaps="false"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/submitchanges"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="5dp"
+            android:layout_weight=".3"
+            android:background="@drawable/rounded_search_bar"
+            android:drawableStart="@drawable/computer_bot"
+            android:drawablePadding="-17dp"
+            android:drawableTint="@color/kiss_text_on_dark"
+            android:onClick="askAI"
+            android:paddingStart="25dp"
+            android:radius="10dp"
+            android:text="Ask AI"
+            android:textAllCaps="false"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/externalFavoriteBar"

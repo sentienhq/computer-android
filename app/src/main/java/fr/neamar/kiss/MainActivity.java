@@ -119,6 +119,10 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
      */
     public View menuButton;
     /**
+     * Computer search bar
+     */
+    public View computerSearchBar;
+    /**
      * Kiss bar
      */
     public View kissBar;
@@ -285,8 +289,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
             this.registerReceiver(mReceiver, intentFilterLoad, Context.RECEIVER_EXPORTED);
             this.registerReceiver(mReceiver, intentFilterLoadOver, Context.RECEIVER_EXPORTED);
             this.registerReceiver(mReceiver, intentFilterFullLoadOver, Context.RECEIVER_EXPORTED);
-        }
-        else {
+        } else {
             this.registerReceiver(mReceiver, intentFilterLoad);
             this.registerReceiver(mReceiver, intentFilterLoadOver);
             this.registerReceiver(mReceiver, intentFilterFullLoadOver);
@@ -299,6 +302,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         this.list = this.findViewById(android.R.id.list);
         this.listContainer = (View) this.list.getParent();
         this.emptyListView = this.findViewById(android.R.id.empty);
+        this.computerSearchBar = findViewById(R.id.computerSearchBar);
         this.kissBar = findViewById(R.id.mainKissbar);
         this.rightHandSideButtonsWrapper = findViewById(R.id.rightHandSideButtonsWrapper);
         this.menuButton = findViewById(R.id.menuButton);
@@ -344,10 +348,12 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 if (adapter.isEmpty()) {
                     // Display help text when no results available
                     listContainer.setVisibility(View.GONE);
+                    displayComputerSearchBar(false);
                     // emptyListView.setVisibility(View.VISIBLE);
                 } else {
                     // Otherwise, display results
                     listContainer.setVisibility(View.VISIBLE);
+                    displayComputerSearchBar(true);
                     // emptyListView.setVisibility(View.GONE);
                 }
 
@@ -547,6 +553,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         searchEditText.setText("");
         searchEditText.setCursorVisible(true);
         searchEditText.requestFocus();
+        displayComputerSearchBar(false);
     }
 
     @Override
@@ -764,6 +771,14 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
 
     public void displayKissBar(boolean display) {
         this.displayKissBar(display, true);
+    }
+
+    public void displayComputerSearchBar(boolean display) {
+        if (display) {
+            computerSearchBar.setVisibility(View.VISIBLE);
+        } else {
+            computerSearchBar.setVisibility(View.GONE);
+        }
     }
 
     private void displayKissBar(boolean display, boolean clearSearchText) {
