@@ -148,6 +148,9 @@
     <string name="menu_app_uninstall">Uninstall</string>
     <string name="menu_app_hibernate">Hibernate</string>
     <string name="menu_shortcut_remove">Remove shortcut</string>
+    <string name="menu_note_remove">Remove note</string>
+    <string name="menu_note_edit">Edit note</string>
+    <string name="menu_note_copy">Copy</string>
     <string name="menu_shortcut_pin">Pin shortcut</string>
     <string name="toast_hibernate_completed">%s hibernated, relaunch to awake.</string>
     <string name="toast_hibernate_error">%s not hibernated.</string>
@@ -355,4 +358,5 @@
     <string name="tagged_result_sort_mode_name">Tagged result sort mode</string>
     <string name="tagged_result_sort_mode_desc">Select how results should be sorted when shown by tag</string>
     <string name="tags_category">Tags</string>
+    <string name="add_note">Add note</string>
 </resources>

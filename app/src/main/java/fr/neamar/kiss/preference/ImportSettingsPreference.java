@@ -116,6 +116,7 @@ public class ImportSettingsPreference extends DialogPreference {
 
                 dataHandler.reloadApps();
                 dataHandler.reloadShortcuts();
+                dataHandler.reloadNotesProvider();
                 dataHandler.reloadSearchProvider();
                 dataHandler.reloadContactsProvider();
 

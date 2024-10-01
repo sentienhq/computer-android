@@ -20,6 +20,7 @@ class DB extends SQLiteOpenHelper {
         database.execSQL("CREATE TABLE history ( _id INTEGER PRIMARY KEY AUTOINCREMENT, \"query\" TEXT, record TEXT NOT NULL)");
         database.execSQL("CREATE TABLE shortcuts ( _id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, package TEXT,"
                 + "icon TEXT, intent_uri TEXT NOT NULL, icon_blob BLOB)");
+        database.execSQL("CREATE TABLE notes ( _id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT NOT NULL, timestamp INTEGER NOT NULL, tags TEXT NOT NULL)");
         createTags(database);
         addTimeStamps(database);
         addAppsTable(database);

@@ -43,6 +43,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AbsListView;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -55,8 +56,10 @@ import java.util.ArrayList;
 
 import fr.neamar.kiss.adapter.RecordAdapter;
 import fr.neamar.kiss.broadcast.IncomingCallHandler;
+import fr.neamar.kiss.dataprovider.NotesProvider;
 import fr.neamar.kiss.dataprovider.simpleprovider.SearchProvider;
 import fr.neamar.kiss.forwarder.ForwarderManager;
+import fr.neamar.kiss.pojo.NotePojo;
 import fr.neamar.kiss.pojo.SearchPojo;
 import fr.neamar.kiss.result.Result;
 import fr.neamar.kiss.searcher.ApplicationsSearcher;
@@ -554,6 +557,23 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         searchEditText.setCursorVisible(true);
         searchEditText.requestFocus();
         displayComputerSearchBar(false);
+    }
+
+
+    public void onAddNote(View view) {
+        String content = searchEditText.getText().toString();
+        if (content.isEmpty()) {
+            Toast.makeText(this, R.string.ui_empty_1, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        DataHandler dh = KissApplication.getApplication(this).getDataHandler();
+        NotesProvider np = dh.getNotesProvider();
+        String noteId = np.generateUniqueId(content);
+        Long timestamp = System.currentTimeMillis();
+        String[] tags = {};
+        NotePojo newNote = new NotePojo(noteId, content, timestamp, tags);
+        dh.insertNewNote(newNote);
+
     }
 
     @Override

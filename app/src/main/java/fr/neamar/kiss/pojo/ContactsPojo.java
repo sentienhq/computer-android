@@ -6,25 +6,21 @@ import fr.neamar.kiss.normalizer.PhoneNormalizer;
 import fr.neamar.kiss.normalizer.StringNormalizer;
 
 public final class ContactsPojo extends Pojo {
+    public static final String SCHEME = "contact://";
     public final String lookupKey;
-
+    public final Uri icon;
+    // Is this a primary phone?
+    public final boolean primary;
+    // Is this contact starred ?
+    public final boolean starred;
     public String phone;
     //phone without special characters
     public StringNormalizer.Result normalizedPhone;
-    // Is this number a home (local) number ?
-    private boolean homeNumber;
-
-    public final Uri icon;
-
-    // Is this a primary phone?
-    public final boolean primary;
-
-    // Is this contact starred ?
-    public final boolean starred;
-
-    private String nickname = null;
     // nickname without special characters
     public StringNormalizer.Result normalizedNickname = null;
+    // Is this number a home (local) number ?
+    private boolean homeNumber;
+    private String nickname = null;
 
     public ContactsPojo(String id, String lookupKey, Uri icon, boolean primary, boolean starred) {
         super(id);

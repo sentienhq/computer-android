@@ -22,8 +22,8 @@ import fr.neamar.kiss.utils.FuzzyScore;
 import fr.neamar.kiss.utils.ShortcutUtil;
 
 public class ShortcutsProvider extends Provider<ShortcutPojo> {
-    private static boolean notifiedKissNotDefaultLauncher = false;
     private static final String TAG = ShortcutsProvider.class.getSimpleName();
+    private static boolean notifiedKissNotDefaultLauncher = false;
 
     @Override
     public void onCreate() {
@@ -97,7 +97,7 @@ public class ShortcutsProvider extends Provider<ShortcutPojo> {
 
             FuzzyScore.MatchInfo matchInfo = fuzzyScore.match(pojo.normalizedName.codePoints);
             boolean match = pojo.updateMatchingRelevance(matchInfo, false);
-
+            
             // check relevance for tags
             if (pojo.getNormalizedTags() != null) {
                 matchInfo = fuzzyScore.match(pojo.getNormalizedTags().codePoints);

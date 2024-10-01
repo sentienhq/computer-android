@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 import fr.neamar.kiss.DataHandler;
 import fr.neamar.kiss.KissApplication;
+import fr.neamar.kiss.pojo.NotePojo;
 
 public class DBHelper {
     private static final String TAG = DBHelper.class.getSimpleName();
@@ -535,6 +537,62 @@ public class DBHelper {
         db.delete("shortcuts", null, null);
     }
 
+
+    /**
+     * Retrieve a list of all notes
+     */
+    public static List<NotePojo> getNotes(Context context) {
+        SQLiteDatabase db = getDatabase(context);
+
+        // Cursor query (String, String, long, String) is the same as Cursor query (String, String, String, String, String, String)
+        Cursor cursor = db.query("notes", new String[]{"_id", "content", "timestamp", "tags"}, null, null, null, null, null);
+        cursor.moveToFirst();
+        List<NotePojo> records = new ArrayList<>(cursor.getCount());
+        while (!cursor.isAfterLast()) {
+            NotePojo entry = new NotePojo(cursor.getString(0), cursor.getString(1), cursor.getLong(2), cursor.getString(3).split(","));
+            records.add(entry);
+            cursor.moveToNext();
+        }
+        cursor.close();
+
+        return records;
+    }
+
+    /**
+     * Insert new note
+     */
+    public static boolean insertNewNote(Context context, NotePojo note) {
+        SQLiteDatabase db = getDatabase(context);
+        ContentValues values = new ContentValues();
+//        values.put("_id", note.id);
+        values.put("content", note.content);
+        values.put("timestamp", note.timestamp);
+        values.put("tags", TextUtils.join(",", note.tags));
+        long result = db.insert("notes", null, values);
+        Log.i(TAG, "Note:" + note.content + " added? " + result);
+        if (result == -1) {
+            Log.e(TAG, "Note failed to add");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Remove all notes
+     */
+    public static void clearNotes(Context context) {
+        SQLiteDatabase db = getDatabase(context);
+        db.delete("notes", null, null);
+    }
+
+    /**
+     * Remove note
+     */
+    public static void removeNote(Context context, String id) {
+        SQLiteDatabase db = getDatabase(context);
+        db.delete("notes", "_id=?", new String[]{id});
+    }
+
     /**
      * Insert new tags for given id
      *
@@ -590,5 +648,4 @@ public class DBHelper {
         cursor.close();
         return records;
     }
-
 }

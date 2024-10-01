@@ -43,6 +43,7 @@ import fr.neamar.kiss.db.DBHelper;
 import fr.neamar.kiss.normalizer.StringNormalizer;
 import fr.neamar.kiss.pojo.AppPojo;
 import fr.neamar.kiss.pojo.ContactsPojo;
+import fr.neamar.kiss.pojo.NotePojo;
 import fr.neamar.kiss.pojo.PhonePojo;
 import fr.neamar.kiss.pojo.Pojo;
 import fr.neamar.kiss.pojo.SearchPojo;
@@ -78,6 +79,8 @@ public abstract class Result<T extends Pojo> {
             return new PhoneResult((PhonePojo) pojo);
         else if (pojo instanceof ShortcutPojo)
             return new ShortcutsResult((ShortcutPojo) pojo);
+        else if (pojo instanceof NotePojo)
+            return new NoteResult((NotePojo) pojo);
         else if (pojo instanceof TagDummyPojo)
             return new TagDummyResult((TagDummyPojo) pojo);
 
@@ -312,6 +315,7 @@ public abstract class Result<T extends Pojo> {
 
     /**
      * to check if launch can be added to history
+     *
      * @return true, if launch can be added to history
      */
     protected boolean canAddToHistory() {

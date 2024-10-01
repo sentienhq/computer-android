@@ -20,7 +20,7 @@ import fr.neamar.kiss.utils.Permission;
 public class LoadContactsPojos extends LoadPojos<ContactsPojo> {
 
     public LoadContactsPojos(Context context) {
-        super(context, "contact://");
+        super(context, ContactsPojo.SCHEME);
     }
 
     @Override

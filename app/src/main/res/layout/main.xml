@@ -117,9 +117,9 @@
             android:drawableStart="@drawable/computer_note"
             android:drawablePadding="-12dp"
             android:drawableTint="@color/kiss_text_on_dark"
-            android:onClick="addNote"
+            android:onClick="onAddNote"
             android:paddingStart="25dp"
-            android:text="Add note"
+            android:text="@string/add_note"
             android:textAllCaps="false"
             android:textSize="12sp" />
 
@@ -194,7 +194,6 @@
                 android:id="@+id/launcherButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-
                 android:background="?attr/appSelectableItemBackground"
                 android:contentDescription="@string/main_kiss"
                 android:focusable="true"

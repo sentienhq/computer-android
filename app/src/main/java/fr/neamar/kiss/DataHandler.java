@@ -34,6 +34,7 @@ import fr.neamar.kiss.broadcast.ProfileChangedHandler;
 import fr.neamar.kiss.dataprovider.AppProvider;
 import fr.neamar.kiss.dataprovider.ContactsProvider;
 import fr.neamar.kiss.dataprovider.IProvider;
+import fr.neamar.kiss.dataprovider.NotesProvider;
 import fr.neamar.kiss.dataprovider.Provider;
 import fr.neamar.kiss.dataprovider.ShortcutsProvider;
 import fr.neamar.kiss.dataprovider.simpleprovider.CalculatorProvider;
@@ -48,6 +49,7 @@ import fr.neamar.kiss.db.ValuedHistoryRecord;
 import fr.neamar.kiss.pojo.AppPojo;
 import fr.neamar.kiss.pojo.ContactsPojo;
 import fr.neamar.kiss.pojo.NameComparator;
+import fr.neamar.kiss.pojo.NotePojo;
 import fr.neamar.kiss.pojo.Pojo;
 import fr.neamar.kiss.pojo.ShortcutPojo;
 import fr.neamar.kiss.searcher.Searcher;
@@ -71,7 +73,7 @@ public class DataHandler extends BroadcastReceiver
      * List all known providers
      */
     final static private List<String> PROVIDER_NAMES = Arrays.asList(
-            "app", "contacts", "shortcuts"
+            "app", "contacts", "shortcuts", "notes"
     );
     final private Context context;
     private final Map<String, ProviderEntry> providers = new HashMap<>();
@@ -95,8 +97,7 @@ public class DataHandler extends BroadcastReceiver
         IntentFilter intentFilter = new IntentFilter(MainActivity.LOAD_OVER);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             this.context.getApplicationContext().registerReceiver(this, intentFilter, Context.RECEIVER_EXPORTED);
-        }
-        else {
+        } else {
             this.context.getApplicationContext().registerReceiver(this, intentFilter);
         }
 
@@ -830,6 +831,18 @@ public class DataHandler extends BroadcastReceiver
         }
     }
 
+    public NotesProvider getNotesProvider() {
+        ProviderEntry entry = this.providers.get("notes");
+        return (entry != null) ? ((NotesProvider) entry.provider) : null;
+    }
+
+    public void reloadNotesProvider() {
+        NotesProvider notesProvider = getNotesProvider();
+        if (notesProvider != null) {
+            notesProvider.reload();
+        }
+    }
+
     @Nullable
     public SearchProvider getSearchProvider() {
         ProviderEntry entry = this.providers.get("search");
@@ -1042,6 +1055,15 @@ public class DataHandler extends BroadcastReceiver
 
     public long removeCustomAppIcon(String componentName) {
         return DBHelper.removeCustomAppIcon(context, componentName);
+    }
+
+    public void insertNewNote(NotePojo newNote) {
+        boolean succcess = DBHelper.insertNewNote(context, newNote);
+        if (!succcess) {
+            Log.e(TAG, "Failed to add note");
+            return;
+        }
+        reloadNotesProvider();
     }
 
     static final class ProviderEntry {
