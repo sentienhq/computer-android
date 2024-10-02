@@ -351,12 +351,10 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 if (adapter.isEmpty()) {
                     // Display help text when no results available
                     listContainer.setVisibility(View.GONE);
-                    displayComputerSearchBar(false);
                     // emptyListView.setVisibility(View.VISIBLE);
                 } else {
                     // Otherwise, display results
                     listContainer.setVisibility(View.VISIBLE);
-                    displayComputerSearchBar(true);
                     // emptyListView.setVisibility(View.GONE);
                 }
 
@@ -378,7 +376,10 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
 
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (isViewingAllApps()) {
+                    displayComputerSearchBar(false);
                     displayKissBar(false, false);
+                } else {
+                    displayComputerSearchBar(true);
                 }
                 String text = s.toString();
                 updateSearchRecords(false, text);

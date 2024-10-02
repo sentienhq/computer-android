@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="@dimen/result_margin_left"
@@ -10,33 +11,73 @@
     android:paddingTop="@dimen/result_margin_top"
     android:paddingEnd="@dimen/result_margin_right"
     android:paddingRight="@dimen/result_margin_right"
-    android:paddingBottom="@dimen/result_margin_bottom"
-    tools:ignore="UseCompoundDrawables">
+    android:paddingBottom="@dimen/result_margin_bottom">
 
     <ImageView
-        android:id="@+id/item_note_icon"
+        android:id="@+id/note_icon"
         android:layout_width="?attr/resultIconSize"
         android:layout_height="?attr/resultIconSize"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/icon_margin_left"
         android:layout_marginLeft="@dimen/icon_margin_left"
         android:layout_marginTop="@dimen/icon_margin_top"
         android:layout_marginEnd="@dimen/icon_margin_right"
         android:layout_marginRight="@dimen/icon_margin_right"
         android:layout_marginBottom="@dimen/icon_margin_bottom"
-        android:contentDescription="@null"
-        android:src="@drawable/computer_note" />
+        android:alpha="0.7"
+        android:importantForAccessibility="no"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="20dp"
+        android:src="@drawable/computer_note_text"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/item_note_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="false"
+        android:layout_marginEnd="0dp"
+        android:alpha="0.5"
+        android:autoSizeMaxTextSize="32sp"
+        android:breakStrategy="simple"
+        android:gravity="end"
+        android:maxLines="3"
+        android:padding="0dp"
+        android:shadowColor="?attr/resultShadowColor"
+        android:shadowDx="1"
+        android:shadowDy="2"
+        android:shadowRadius="?attr/textShadowRadius"
+        android:singleLine="false"
+        android:textColor="?attr/resultColor"
+        android:textDirection="locale"
+        android:textSize="?attr/resultSubtitleSize"
+        tools:ignore="RtlSymmetry"
+        tools:text="Note time" />
 
     <TextView
         android:id="@+id/item_note_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="false"
+        android:layout_toEndOf="@id/note_icon"
+        android:layout_toRightOf="@id/note_icon"
+        android:ellipsize="end"
+        android:importantForAccessibility="no"
+        android:maxLines="3"
+        android:paddingEnd="28dp"
         android:shadowColor="?attr/resultShadowColor"
         android:shadowDx="1"
         android:shadowDy="2"
         android:shadowRadius="?attr/textShadowRadius"
-        android:textColor="?attr/resultColor"
+        android:textColor="?android:attr/textColorSecondary"
         android:textDirection="locale"
-        android:textSize="?attr/resultTitleSize"
-        tools:text="@string/ui_item_search" />
+        android:textSize="?attr/resultSubtitleSize"
+        tools:ignore="RtlSymmetry"
+        tools:text="Note text" />
 
-</LinearLayout>
+
+</RelativeLayout>

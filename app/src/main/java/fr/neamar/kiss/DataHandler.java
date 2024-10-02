@@ -1066,6 +1066,11 @@ public class DataHandler extends BroadcastReceiver
         reloadNotesProvider();
     }
 
+    public void removeNote(String noteId) {
+        DBHelper.removeNote(context, noteId);
+        reloadNotesProvider();
+    }
+
     static final class ProviderEntry {
         public IProvider<?> provider = null;
         ServiceConnection connection = null;

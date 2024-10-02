@@ -359,4 +359,10 @@
     <string name="tagged_result_sort_mode_desc">Select how results should be sorted when shown by tag</string>
     <string name="tags_category">Tags</string>
     <string name="add_note">Add note</string>
+    <string name="today_at">%s</string>
+    <string name="yesterday_at">Yesterday, at %s</string>
+    <string name="days_ago_at">%d d ago, %s</string>
+    <string name="just_now">Now</string>
+    <string name="minutes_ago">%d min ago</string>
+    <string name="copied">Note copied!</string>
 </resources>
