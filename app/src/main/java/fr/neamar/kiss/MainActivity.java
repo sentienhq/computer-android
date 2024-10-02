@@ -560,7 +560,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
     }
 
 
-    public void onAddNote(View view) {
+    public void onAddNoteOnClick(View view) {
         String content = searchEditText.getText().toString();
         if (content.isEmpty()) {
             Toast.makeText(this, R.string.ui_empty_1, Toast.LENGTH_SHORT).show();
@@ -573,7 +573,16 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         String[] tags = {};
         NotePojo newNote = new NotePojo(noteId, content, timestamp, tags);
         dh.insertNewNote(newNote);
+    }
 
+    public void askAIOnClick(View view) {
+        // TODO: implement this
+        Log.d(TAG, "askAIOnClick");
+    }
+
+    public void searchOnlineOnClick(View view) {
+        // TODO: implement this
+        Log.d(TAG, "searchOnlineOnClick");
     }
 
     @Override
