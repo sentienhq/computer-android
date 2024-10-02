@@ -569,7 +569,6 @@ public class DBHelper {
         values.put("timestamp", note.timestamp);
         values.put("tags", TextUtils.join(",", note.tags));
         long result = db.insert("notes", null, values);
-        Log.i(TAG, "Note:" + note.content + " added? " + result);
         if (result == -1) {
             Log.e(TAG, "Note failed to add");
             return false;

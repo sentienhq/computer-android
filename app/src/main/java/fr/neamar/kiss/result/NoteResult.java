@@ -4,6 +4,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.text.Layout;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -18,6 +20,7 @@ import fr.neamar.kiss.R;
 import fr.neamar.kiss.adapter.RecordAdapter;
 import fr.neamar.kiss.pojo.NotePojo;
 import fr.neamar.kiss.ui.ListPopup;
+import fr.neamar.kiss.utils.ClipboardUtils;
 import fr.neamar.kiss.utils.FuzzyScore;
 import fr.neamar.kiss.utils.TimeUtils;
 
@@ -25,6 +28,20 @@ public class NoteResult extends Result<NotePojo> {
 
     public NoteResult(NotePojo pojo) {
         super(pojo);
+    }
+
+    // Method to check if the TextView is ellipsized
+    private static boolean isEllipsized(TextView textView) {
+        Layout layout = textView.getLayout();
+        if (layout != null) {
+            int lineCount = layout.getLineCount();
+            for (int i = 0; i < lineCount; i++) {
+                if (layout.getEllipsisCount(i) > 0) {
+                    return true; // Ellipsized text found
+                }
+            }
+        }
+        return false; // No ellipsized text
     }
 
     @NonNull
@@ -41,8 +58,16 @@ public class NoteResult extends Result<NotePojo> {
     }
 
     @Override
-    protected void doLaunch(Context context, View v) {
-
+    public void doLaunch(Context context, View v) {
+        TextView noteText = v.findViewById(R.id.item_note_text);
+        if (noteText == null || context == null) {
+            // Safety check to avoid crashing or closing the app
+            return;
+        }
+        if (isEllipsized(noteText)) {
+            noteText.setMaxLines(Integer.MAX_VALUE);
+            noteText.setEllipsize(null);
+        }
     }
 
     @Override
@@ -60,8 +85,7 @@ public class NoteResult extends Result<NotePojo> {
         // todo implement this later
         switch (stringId) {
             case R.string.menu_note_copy:
-                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                clipboard.setPrimaryClip(ClipData.newPlainText("Note", pojo.getContent()));
+                ClipboardUtils.setClipboard(context, pojo.getContent());
                 Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show();
                 break;
             case R.string.share:
