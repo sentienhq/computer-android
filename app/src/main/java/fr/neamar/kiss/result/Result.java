@@ -142,8 +142,9 @@ public abstract class Result<T extends Pojo> {
         }
 
         SpannableString enriched = new SpannableString(text);
-        int primaryColor = UIColors.getPrimaryColor(context);
-
+        //int primaryColor = UIColors.getPrimaryColor(context);
+        // TODO: fix this - later for light theme
+        int primaryColor = 0xFFFFFFFF;
         for (Pair<Integer, Integer> position : matchInfo.getMatchedSequences()) {
             enriched.setSpan(
                     new ForegroundColorSpan(primaryColor),

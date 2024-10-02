@@ -36,9 +36,9 @@ import fr.neamar.kiss.utils.FuzzyScore;
 
 public class ContactsResult extends CallResult<ContactsPojo> {
 
+    private static final String TAG = ContactsResult.class.getSimpleName();
     private final QueryInterface queryInterface;
     private volatile Drawable icon = null;
-    private static final String TAG = ContactsResult.class.getSimpleName();
 
     ContactsResult(QueryInterface queryInterface, @NonNull ContactsPojo pojo) {
         super(pojo);
@@ -93,13 +93,14 @@ public class ContactsResult extends CallResult<ContactsPojo> {
             }
         });
 
-        int primaryColor = UIColors.getPrimaryColor(context);
+        // ToDo: fix this - later for light theme
+        int adjustColor = 0xC3C3C3;
         // Phone action
         ImageButton phoneButton = view.findViewById(R.id.item_contact_action_phone);
-        phoneButton.setColorFilter(primaryColor);
+        phoneButton.setColorFilter(adjustColor);
         // Message action
         ImageButton messageButton = view.findViewById(R.id.item_contact_action_message);
-        messageButton.setColorFilter(primaryColor);
+        messageButton.setColorFilter(adjustColor);
 
         PackageManager pm = context.getPackageManager();
 

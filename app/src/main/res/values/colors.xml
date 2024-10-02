@@ -15,4 +15,6 @@
 
     <color name="computer_orange">#FF6F41</color>
     <color name="computer_orange_dark_search">#44555555</color>
+    <color name="computer_background">#0A0A0A</color>
+    <color name="computer_text_white">#A0A0A0</color>
 </resources>

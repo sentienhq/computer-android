@@ -86,7 +86,7 @@
         android:visibility="gone"
         tools:ignore="UnusedAttribute"
         tools:layout="@layout/favorite_item"
-        tools:visibility="gone">
+        tools:visibility="visible">
 
         <Button
             android:id="@+id/resetDatesButton"
@@ -97,10 +97,10 @@
             android:layout_weight=".3"
             android:background="@drawable/rounded_search_bar"
             android:drawableStart="@drawable/computer_search"
-            android:drawablePadding="-17dp"
+            android:drawablePadding="-27dp"
             android:drawableTint="@color/kiss_text_on_dark"
             android:onClick="searchOnline"
-            android:paddingStart="25dp"
+            android:paddingStart="20dp"
             android:radius="10dp"
             android:text="Search"
             android:textAllCaps="false"
@@ -115,10 +115,10 @@
             android:layout_weight=".3"
             android:background="@drawable/rounded_search_bar"
             android:drawableStart="@drawable/computer_note"
-            android:drawablePadding="-12dp"
+            android:drawablePadding="-20dp"
             android:drawableTint="@color/kiss_text_on_dark"
             android:onClick="onAddNote"
-            android:paddingStart="25dp"
+            android:paddingStart="20dp"
             android:text="@string/add_note"
             android:textAllCaps="false"
             android:textSize="12sp" />
@@ -132,10 +132,10 @@
             android:layout_weight=".3"
             android:background="@drawable/rounded_search_bar"
             android:drawableStart="@drawable/computer_bot"
-            android:drawablePadding="-17dp"
+            android:drawablePadding="-20dp"
             android:drawableTint="@color/kiss_text_on_dark"
             android:onClick="askAI"
-            android:paddingStart="25dp"
+            android:paddingStart="20dp"
             android:radius="10dp"
             android:text="Ask AI"
             android:textAllCaps="false"
