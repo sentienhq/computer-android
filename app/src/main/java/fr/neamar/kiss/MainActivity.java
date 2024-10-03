@@ -19,7 +19,6 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -47,11 +46,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 
 import fr.neamar.kiss.adapter.RecordAdapter;
@@ -64,6 +58,7 @@ import fr.neamar.kiss.pojo.SearchPojo;
 import fr.neamar.kiss.result.Result;
 import fr.neamar.kiss.searcher.ApplicationsSearcher;
 import fr.neamar.kiss.searcher.HistorySearcher;
+import fr.neamar.kiss.searcher.NotesSearcher;
 import fr.neamar.kiss.searcher.QueryInterface;
 import fr.neamar.kiss.searcher.QuerySearcher;
 import fr.neamar.kiss.searcher.Searcher;
@@ -72,7 +67,6 @@ import fr.neamar.kiss.searcher.UntaggedSearcher;
 import fr.neamar.kiss.sentien.ComputerModule;
 import fr.neamar.kiss.sentien.WebAppInterface;
 import fr.neamar.kiss.ui.AnimatedListView;
-import fr.neamar.kiss.ui.BottomPullEffectView;
 import fr.neamar.kiss.ui.KeyboardScrollHider;
 import fr.neamar.kiss.ui.ListPopup;
 import fr.neamar.kiss.ui.SearchEditText;
@@ -376,13 +370,11 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
 
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (isViewingAllApps()) {
-                    displayComputerSearchBar(false);
                     displayKissBar(false, false);
-                } else {
-                    displayComputerSearchBar(true);
                 }
                 String text = s.toString();
                 updateSearchRecords(false, text);
+                displayComputerSearchBar(text.length() > 0);
                 displayClearOnInput();
             }
         });
@@ -557,7 +549,6 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         searchEditText.setText("");
         searchEditText.setCursorVisible(true);
         searchEditText.requestFocus();
-        displayComputerSearchBar(false);
     }
 
 
@@ -578,6 +569,9 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
 
     public void askAIOnClick(View view) {
         // TODO: implement this
+        if (computerModule != null) {
+            computerModule.askAI(searchEditText.getText().toString());
+        }
         Log.d(TAG, "askAIOnClick");
     }
 
@@ -831,7 +825,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
             // Needs to be done after setting the text content to empty
             isDisplayingKissBar = true;
 
-            runTask(new ApplicationsSearcher(MainActivity.this, false));
+            runTask(new NotesSearcher(MainActivity.this, false));
 
             // Reveal the bar
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

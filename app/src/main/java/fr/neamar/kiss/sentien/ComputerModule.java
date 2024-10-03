@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import fr.neamar.kiss.BuildConfig;
+
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +27,7 @@ public class ComputerModule {
     private AccountService accountService;
     private DataService dataService;
     private ClipboardService clipboardService;
+    private LLMService llmService;
 
 
     public ComputerModule(Context context, DataHandler dataHandler, SharedPreferences prefs) {
@@ -33,6 +36,11 @@ public class ComputerModule {
             cryptoService = new CryptoService(context);
             dataService = new DataService(dataHandler);
             accountService = new AccountService(context, prefs, cryptoService, dataService);
+            llmService = new LLMService(context);
+//            String apiKey = BuildConfig.TESTING_API_KEY;
+//            if (apiKey != null) {
+//                llmService.init(apiKey);
+//            }
             //  clipboardService = new ClipboardService(context, accountService);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -65,5 +73,22 @@ public class ComputerModule {
             }
         }
         return "";
+    }
+
+    public void askAI(String prompt) {
+        if (llmService != null) {
+            llmService.performTask(prompt, new LLMService.LLMCallback() {
+                @Override
+                public void onSuccess(String result) {
+                    Log.i(TAG, "LLMService: onSuccess" + result);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.i(TAG, "LLMService: onError" + error);
+
+                }
+            });
+        }
     }
 }

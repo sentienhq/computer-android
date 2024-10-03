@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.DragEvent;
@@ -43,42 +42,19 @@ public class Favorites extends Forwarder implements View.OnClickListener, View.O
 
     // Package used by Android when an Intent can be matched with more than one app
     private static final String DEFAULT_RESOLVER = "com.android.internal.app.ResolverActivity";
-
-    /**
-     * IDs for the favorites buttons
-     */
-    private List<ViewHolder> favoritesViews = new ArrayList<>();
-
-    private static class ViewHolder {
-        final View view;
-        @NonNull
-        final Result<?> result;
-        @NonNull
-        final Pojo pojo;
-
-        ViewHolder(@NonNull Result<?> result, @NonNull Pojo pojo, @NonNull Context context, @NonNull ViewGroup parent) {
-            this.result = result;
-            this.pojo = pojo;
-            view = result.inflateFavorite(context, parent);
-            view.setTag(this);
-        }
-
-        boolean isReusable() {
-            return !result.isDrawableDynamic();
-        }
-    }
-
     /**
      * Globals for drag and drop support
      */
     private static long startTime = 0; // Start of the drag and drop, used for long press menu
-
+    /**
+     * IDs for the favorites buttons
+     */
+    private List<ViewHolder> favoritesViews = new ArrayList<>();
     // Use so we don't over process on the drag events.
     private boolean mDragEnabled = true;
     private boolean isDragging = false;
     private int potentialNewIndex = -1;
     private int favCount = -1;
-
     private SharedPreferences notificationPrefs = null;
 
     Favorites(MainActivity mainActivity) {
@@ -105,9 +81,7 @@ public class Favorites extends Forwarder implements View.OnClickListener, View.O
             prefs.edit().putBoolean("first-run-favorites", false).apply();
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            notificationPrefs = mainActivity.getSharedPreferences(NotificationListener.NOTIFICATION_PREFERENCES_NAME, Context.MODE_PRIVATE);
-        }
+        notificationPrefs = mainActivity.getSharedPreferences(NotificationListener.NOTIFICATION_PREFERENCES_NAME, Context.MODE_PRIVATE);
 
         onFavoriteChange();
     }
@@ -182,7 +156,7 @@ public class Favorites extends Forwarder implements View.OnClickListener, View.O
             favoritesBar.removeViewAt(favCount);
         }
 
-        // kepp viewholders in memory for future recycling
+        // keep viewholders in memory for future recycling
         favoritesViews = holders;
         mDragEnabled = favCount > 1;
     }
@@ -357,7 +331,6 @@ public class Favorites extends Forwarder implements View.OnClickListener, View.O
         return isDragging;
     }
 
-
     /**
      * On first run, fill the favorite bar with sensible defaults
      */
@@ -405,6 +378,25 @@ public class Favorites extends Forwarder implements View.OnClickListener, View.O
             return launchingComponent;
         }
         return null;
+    }
+
+    private static class ViewHolder {
+        final View view;
+        @NonNull
+        final Result<?> result;
+        @NonNull
+        final Pojo pojo;
+
+        ViewHolder(@NonNull Result<?> result, @NonNull Pojo pojo, @NonNull Context context, @NonNull ViewGroup parent) {
+            this.result = result;
+            this.pojo = pojo;
+            view = result.inflateFavorite(context, parent);
+            view.setTag(this);
+        }
+
+        boolean isReusable() {
+            return !result.isDrawableDynamic();
+        }
     }
 }
 

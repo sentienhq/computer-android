@@ -843,6 +843,15 @@ public class DataHandler extends BroadcastReceiver
         }
     }
 
+    public List<NotePojo> getAllNotes() {
+        NotesProvider notesProvider = getNotesProvider();
+        if (notesProvider != null) {
+            return notesProvider.getPojos();
+        }
+        // or return empty list
+        return new ArrayList<>();
+    }
+
     @Nullable
     public SearchProvider getSearchProvider() {
         ProviderEntry entry = this.providers.get("search");

@@ -3,7 +3,8 @@ package fr.neamar.kiss.pojo;
 import fr.neamar.kiss.normalizer.StringNormalizer;
 
 public class NotePojo extends Pojo {
-    public static final String SCHEME = "shortcut://";
+    public static final String SCHEME = "note://";
+    public static NotePojoType type;
     public String content;
     public String[] tags;
     public long timestamp;
