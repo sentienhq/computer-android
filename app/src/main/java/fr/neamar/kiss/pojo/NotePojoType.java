@@ -1,8 +1,10 @@
 package fr.neamar.kiss.pojo;
 
 public enum NotePojoType {
-    PARENT,
-    SUB_NOTE,
-    SUB_AI_CONVO,
+    NOTE_PARENT,
+    NOTE_SUB,
+    AI_CONVO,
+    //    AI_CONVERSATION_CHILD_USER,
+//    AI_CONVERSATION_CHILD_AI,
     CLIPBOARD
 }

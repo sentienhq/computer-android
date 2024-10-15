@@ -5,6 +5,8 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.ConnectivityManager;
+import android.os.BatteryManager;
 
 import fr.neamar.kiss.utils.IconPackCache;
 
@@ -14,10 +16,10 @@ public class KissApplication extends Application {
      * Setting this value to 0 removes all animations
      */
     public static final int TOUCH_DELAY = 120;
+    private final IconPackCache mIconPackCache = new IconPackCache();
     private volatile DataHandler dataHandler;
     private volatile RootHandler rootHandler;
     private volatile IconsHandler iconsPackHandler;
-    private final IconPackCache mIconPackCache = new IconPackCache();
 
     public static KissApplication getApplication(Context context) {
         return (KissApplication) context.getApplicationContext();
@@ -92,5 +94,16 @@ public class KissApplication extends Application {
             SQLiteDatabase.releaseMemory();
             mIconPackCache.clearCache(this);
         }
+    }
+
+    public String getBatteryLevel() {
+        BatteryManager bm = (BatteryManager) getSystemService(BATTERY_SERVICE);
+        int batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        return String.valueOf(batLevel);
+    }
+
+    public String getNetworkType() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo().getSubtypeName();
     }
 }

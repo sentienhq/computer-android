@@ -23,20 +23,19 @@ import fr.neamar.kiss.result.Result;
 
 public abstract class Searcher extends AsyncTask<Void, Result<?>, Void> {
 
-    private static final String TAG = Searcher.class.getSimpleName();
-
     // define a different thread than the default AsyncTask thread or else we will block everything else that uses AsyncTask while we search
     public static final ExecutorService SEARCH_THREAD = Executors.newSingleThreadExecutor();
-    static final int DEFAULT_MAX_RESULTS = 50;
+    static final int DEFAULT_MAX_RESULTS = 30;
+    private static final String TAG = Searcher.class.getSimpleName();
+    protected final String query;
     final WeakReference<MainActivity> activityWeakReference;
     private final PriorityQueue<Pojo> processedPojos;
-    private long start;
     /**
      * Set to true when we are simply refreshing current results (scroll will not be reset)
      * When false, we reset the scroll back to the last item in the list
      */
     private final boolean isRefresh;
-    protected final String query;
+    private long start;
 
     Searcher(MainActivity activity, String query, boolean isRefresh) {
         super();

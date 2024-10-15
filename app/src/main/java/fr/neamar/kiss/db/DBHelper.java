@@ -11,14 +11,12 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.neamar.kiss.DataHandler;
-import fr.neamar.kiss.KissApplication;
 import fr.neamar.kiss.pojo.NotePojo;
+import fr.neamar.kiss.pojo.NotePojoType;
 
 public class DBHelper {
     private static final String TAG = DBHelper.class.getSimpleName();
@@ -544,12 +542,12 @@ public class DBHelper {
     public static List<NotePojo> getNotes(Context context) {
         SQLiteDatabase db = getDatabase(context);
 
-        // Cursor query (String, String, long, String) is the same as Cursor query (String, String, String, String, String, String)
-        Cursor cursor = db.query("notes", new String[]{"_id", "content", "timestamp", "tags"}, null, null, null, null, null);
+        // Cursor query (String, String, long, String) is the same as Cursor query (String, String, String, String[], String, String, String, String[])
+        Cursor cursor = db.query("notes", new String[]{"_id", "type", "parentId", "childIds", "content", "contentReply", "timestamp", "tags"}, null, null, null, null, null);
         cursor.moveToFirst();
         List<NotePojo> records = new ArrayList<>(cursor.getCount());
         while (!cursor.isAfterLast()) {
-            NotePojo entry = new NotePojo(cursor.getString(0), cursor.getString(1), cursor.getLong(2), cursor.getString(3).split(","));
+            NotePojo entry = new NotePojo(cursor.getString(0), NotePojoType.valueOf(cursor.getString(1)), cursor.getString(2), cursor.getString(3).split(","), cursor.getString(4), cursor.getString(5), cursor.getLong(6), cursor.getString(7).split(","));
             records.add(entry);
             cursor.moveToNext();
         }
@@ -561,20 +559,33 @@ public class DBHelper {
     /**
      * Insert new note
      */
-    public static boolean insertNewNote(Context context, NotePojo note) {
+    public static long insertNewNote(Context context, NotePojo note) {
         SQLiteDatabase db = getDatabase(context);
         ContentValues values = new ContentValues();
-//        values.put("_id", note.id);
+        values.put("type", note.type.toString());
+        values.put("parentId", note.parentId);
+        values.put("childIds", TextUtils.join(",", note.childIds));
         values.put("content", note.content);
+        values.put("contentReply", note.contentReply);
         values.put("timestamp", note.timestamp);
         values.put("tags", TextUtils.join(",", note.tags));
         long result = db.insert("notes", null, values);
         if (result == -1) {
             Log.e(TAG, "Note failed to add");
-            return false;
+        } else {
+            note.id = String.valueOf(result);
         }
-        return true;
+        return result;
     }
+
+//    public static String getNoteIdFromRowLong(Context context, long rowId) {
+//        SQLiteDatabase db = getDatabase(context);
+//        Cursor cursor = db.rawQuery("SELECT _id FROM notes WHERE _id = ?", new String[]{String.valueOf(rowId)});
+//        cursor.moveToFirst();
+//        String id = cursor.getString(0);
+//        cursor.close();
+//        return id;
+//    }
 
     /**
      * Remove all notes
@@ -646,5 +657,19 @@ public class DBHelper {
         }
         cursor.close();
         return records;
+    }
+
+    public static boolean updateNote(Context context, NotePojo note) {
+        SQLiteDatabase db = getDatabase(context);
+        ContentValues values = new ContentValues();
+        values.put("type", note.type.toString());
+        values.put("parentId", note.parentId);
+        values.put("childIds", TextUtils.join(",", note.childIds));
+        values.put("content", note.content);
+        values.put("contentReply", note.contentReply);
+        values.put("timestamp", note.timestamp);
+        values.put("tags", TextUtils.join(",", note.tags));
+        int rowsAffected = db.update("notes", values, "_id=?", new String[]{note.id});
+        return rowsAffected != 0;
     }
 }

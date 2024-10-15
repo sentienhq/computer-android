@@ -307,8 +307,9 @@ public abstract class Result<T extends Pojo> {
         // * to avoid a flickering -- launchOccurred will refresh the list
         // Thus TOUCH_DELAY * 3
         Handler handler = new Handler();
+        boolean isNote = pojo instanceof NotePojo;
         handler.postDelayed(() -> {
-            if (queryInterface != null) {
+            if (queryInterface != null && !isNote) {
                 queryInterface.launchOccurred();
             }
         }, KissApplication.TOUCH_DELAY * 3);

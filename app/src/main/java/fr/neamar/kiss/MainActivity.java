@@ -54,6 +54,7 @@ import fr.neamar.kiss.dataprovider.NotesProvider;
 import fr.neamar.kiss.dataprovider.simpleprovider.SearchProvider;
 import fr.neamar.kiss.forwarder.ForwarderManager;
 import fr.neamar.kiss.pojo.NotePojo;
+import fr.neamar.kiss.pojo.NotePojoType;
 import fr.neamar.kiss.pojo.SearchPojo;
 import fr.neamar.kiss.result.Result;
 import fr.neamar.kiss.searcher.ApplicationsSearcher;
@@ -65,6 +66,7 @@ import fr.neamar.kiss.searcher.Searcher;
 import fr.neamar.kiss.searcher.TagsSearcher;
 import fr.neamar.kiss.searcher.UntaggedSearcher;
 import fr.neamar.kiss.sentien.ComputerModule;
+import fr.neamar.kiss.sentien.LLMService;
 import fr.neamar.kiss.sentien.WebAppInterface;
 import fr.neamar.kiss.ui.AnimatedListView;
 import fr.neamar.kiss.ui.KeyboardScrollHider;
@@ -72,6 +74,8 @@ import fr.neamar.kiss.ui.ListPopup;
 import fr.neamar.kiss.ui.SearchEditText;
 import fr.neamar.kiss.utils.Permission;
 import fr.neamar.kiss.utils.SystemUiVisibilityHelper;
+
+import fr.neamar.kiss.sentien.secrets;
 
 public class MainActivity extends Activity implements QueryInterface, KeyboardScrollHider.KeyboardHandler, View.OnTouchListener {
 
@@ -257,16 +261,9 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                     updateSearchRecords();
                 } else if (intent.getAction().equalsIgnoreCase(FULL_LOAD_OVER)) {
                     Log.v(TAG, "All providers are done loading.");
-
                     displayLoader(false);
                     if (!isDefaultLauncher()) {
                         showLauncherPrompt(); // Show a dialog asking the user to set the app as the default launcher
-                    }
-
-                    try {
-                        computerModule = new ComputerModule(context, KissApplication.getApplication(context).getDataHandler(), prefs);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     }
 
                     // Run GC once to free all the garbage accumulated during provider initialization
@@ -309,6 +306,17 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         this.launcherButton = findViewById(R.id.launcherButton);
         this.whiteLauncherButton = findViewById(R.id.whiteLauncherButton);
         this.clearButton = findViewById(R.id.clearButton);
+
+        try {
+            if (computerModule == null) {
+                String apiKey = secrets.test_api_key;
+                if (apiKey != null) {
+                    computerModule = new ComputerModule(this, KissApplication.getApplication(this).getDataHandler(), prefs, apiKey);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         /*
          * Initialize components behavior
@@ -563,14 +571,49 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         String noteId = np.generateUniqueId(content);
         Long timestamp = System.currentTimeMillis();
         String[] tags = {};
-        NotePojo newNote = new NotePojo(noteId, content, timestamp, tags);
+        NotePojoType type = NotePojoType.NOTE_PARENT;
+        String parentId = "0";
+        String[] childIds = {};
+        NotePojo newNote = new NotePojo(noteId, type, parentId, childIds, content, "", timestamp, tags);
         dh.insertNewNote(newNote);
     }
 
     public void askAIOnClick(View view) {
-        // TODO: implement this
+        Log.i(TAG, "askAIOnClick 0." + (computerModule != null));
         if (computerModule != null) {
-            computerModule.askAI(searchEditText.getText().toString());
+            String prompt = searchEditText.getText().toString();
+            Log.i(TAG, "askAIOnClick 1." + prompt);
+            if (prompt.isEmpty()) {
+                Log.i(TAG, "askAIOnClick 2.");
+                return;
+            }
+            DataHandler dh = KissApplication.getApplication(this).getDataHandler();
+            NotesProvider np = dh.getNotesProvider();
+            String noteId = np.generateUniqueId(prompt);
+            Long timestamp = System.currentTimeMillis();
+            String[] tags = {};
+            NotePojoType type = NotePojoType.AI_CONVO;
+            String parentId = "0";
+            String[] childIds = {};
+            NotePojo newNote = new NotePojo(noteId, type, parentId, childIds, prompt, "", timestamp, tags);
+            dh.insertNewNote(newNote);
+            Log.i(TAG, "askAIOnClick 3.");
+            computerModule.askAI(prompt, new LLMService.LLMCallback() {
+                @Override
+                public void onSuccess(String result) {
+                    newNote.contentReply = result;
+                    dh.updateNote(newNote);
+                }
+
+                @Override
+                public void onError(String error) {
+                    Log.i(TAG, "LLMService: onError" + error);
+                    newNote.contentReply = "Rekt " + error;
+                    dh.updateNote(newNote);
+                    Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                }
+            });
+
         }
         Log.d(TAG, "askAIOnClick");
     }

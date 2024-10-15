@@ -5,14 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import fr.neamar.kiss.BuildConfig;
-
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import fr.neamar.kiss.DataHandler;
 
 public class ComputerModule {
@@ -30,13 +22,17 @@ public class ComputerModule {
     private LLMService llmService;
 
 
-    public ComputerModule(Context context, DataHandler dataHandler, SharedPreferences prefs) {
+    public ComputerModule(Context context, DataHandler dataHandler, SharedPreferences prefs, String key) {
         try {
 
             cryptoService = new CryptoService(context);
             dataService = new DataService(dataHandler);
             accountService = new AccountService(context, prefs, cryptoService, dataService);
             llmService = new LLMService(context);
+            if (key != null) {
+                llmService.init(key);
+            }
+
 //            String apiKey = BuildConfig.TESTING_API_KEY;
 //            if (apiKey != null) {
 //                llmService.init(apiKey);
@@ -75,20 +71,9 @@ public class ComputerModule {
         return "";
     }
 
-    public void askAI(String prompt) {
+    public void askAI(String prompt, LLMService.LLMCallback callback) {
         if (llmService != null) {
-            llmService.performTask(prompt, new LLMService.LLMCallback() {
-                @Override
-                public void onSuccess(String result) {
-                    Log.i(TAG, "LLMService: onSuccess" + result);
-                }
-
-                @Override
-                public void onError(String error) {
-                    Log.i(TAG, "LLMService: onError" + error);
-
-                }
-            });
+            llmService.performTask(prompt, callback);
         }
     }
 }

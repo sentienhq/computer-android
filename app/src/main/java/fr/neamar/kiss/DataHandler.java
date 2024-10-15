@@ -777,6 +777,11 @@ public class DataHandler extends BroadcastReceiver
         return shortcutsProvider != null ? shortcutsProvider.getPinnedShortcuts() : null;
     }
 
+    public List<ShortcutPojo> getShortcuts() {
+        ShortcutsProvider shortcutsProvider = getShortcutsProvider();
+        return shortcutsProvider != null ? shortcutsProvider.getShortcuts() : null;
+    }
+
 
     @Nullable
     public ContactsProvider getContactsProvider() {
@@ -1067,11 +1072,16 @@ public class DataHandler extends BroadcastReceiver
     }
 
     public void insertNewNote(NotePojo newNote) {
-        boolean succcess = DBHelper.insertNewNote(context, newNote);
-        if (!succcess) {
+        long succcess = DBHelper.insertNewNote(context, newNote);
+        if (succcess == -1) {
             Log.e(TAG, "Failed to add note");
             return;
         }
+        reloadNotesProvider();
+    }
+
+    public void updateNote(NotePojo note) {
+        DBHelper.updateNote(context, note);
         reloadNotesProvider();
     }
 
