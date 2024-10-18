@@ -5,8 +5,7 @@ import java.util.ArrayList;
 enum LLMActionType {
     STATIC, // actions that can be performed by predefined intents
     DYNAMIC, // actions that can be triggered by shortcuts or other found intents
-    DISABLED, // actions that are disabled by the user and not accessible to LLM or user
-    UNDEFINED // actions are actions that are not defined and will be processed by the LLM to find the best action
+    DISABLED // actions that are disabled by the user and not accessible to LLM or user
 }
 
 enum LLMDataAccessCapability {
@@ -33,14 +32,26 @@ class LLMAction {
     }
 }
 
-public class LLMActions {
+public class LLMActionList {
     private ArrayList<LLMAction> ACTIONS = new ArrayList<>();
 
-    public LLMActions() {
+    public LLMActionList() {
 
         // NONE or ANSWER
         LLMDataAccessCapability[] noneCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE};
         ACTIONS.add(new LLMAction("ANSWER", "Just reply to user with answer and do no other activity.", LLMActionType.STATIC, new String[]{"smart_answer"}, noneCap));
+
+        // GET CAPABILITIES
+        // for example, to get the capabilities of the user's contacts send capabilityType="CONTACTS" and capabilityQuery="imrich" for specific subjects
+        // to get the capabilities of the user's notes send capabilityType="NOTES" and capabilityQuery="imrich, work, personal" for specific subjects (note: the subjects are comma separated) and filtered by the user's tags and content
+        // to get all contacts send capabilityType="CONTACTS" and capabilityQuery="*" (avoid it as much as possible)
+        // it is recommended to send specific capabilityQuery to get more specific data and save the result in memory
+        ACTIONS.add(new LLMAction("GET_CAPABILITY", "Get the required data capabilities for the LLM to make decisions.", LLMActionType.STATIC, new String[]{"capabilityType", "capabilityQuery"}, noneCap));
+
+        // WORKING MEMORY
+        // working memory is a temporary storage for data that is not saved to the next prompt
+        ACTIONS.add(new LLMAction("WORKING_MEMORY_CLEAR", "Clear working memory.", LLMActionType.STATIC, new String[]{}, noneCap));
+        ACTIONS.add(new LLMAction("WORKING_MEMORY_SAVE", "Save data to working memory.", LLMActionType.STATIC, new String[]{"data"}, noneCap));
 
         // CONTACTS
         LLMDataAccessCapability[] contactsCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.CONTACTS};
@@ -60,11 +71,14 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("CLOCK_DISMISS_TIMER", "Dismiss a timer.", LLMActionType.STATIC, new String[]{"timer_name_msg"}, noneCap));
         ACTIONS.add(new LLMAction("CLOCK_NEW_STOPWATCH", "Create a new stopwatch.", LLMActionType.STATIC, new String[]{"stopwatch_name_msg", "stopwatch_time_hour", "stopwatch_time_minutes", "stopwatch_days"}, noneCap));
 
-        // NAVIGATE
+        // NAVIGATION
         LLMDataAccessCapability[] appShortcutCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.SHORTCUTS, LLMDataAccessCapability.APPS};
-        ACTIONS.add(new LLMAction("NAVIGATE_TO", "Navigate to a location string address.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id", "location_name"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("NAVIGATE_GET_MY_LOCATION", "Get my current location lat and long.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("NAVIGATE_GET_MY_ADDRESS", "Get my current address.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("NAVIGATION_TO", "Navigate to a location string address.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id", "location_name"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("NAVIGATION_GET_MY_LOCATION", "Get my current location lat and long.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("NAVIGATION_GET_MY_ADDRESS", "Get my current address.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
+        // find nearby places
+        // possible categories: restaurants, hotels, tourist_attractions, gas_stations, parking_garages, shopping_centers, entertainment, sports, religious_sites, bars, nightlife, museums, movie_theaters, amusement_parks, art_galleries, music_venues, financial_services, healthcare, retail, transportation, education, government, libraries, fitness, religion, history,
+        ACTIONS.add(new LLMAction("NAVIGATION_FIND_NEARBY_CATEGORY", "Find nearby category.", LLMActionType.STATIC, new String[]{"category_name"}, noneCap));
 
         // CAMERA
         ACTIONS.add(new LLMAction("CAMERA_TAKE_PICTURE", "Take a picture.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
@@ -87,6 +101,7 @@ public class LLMActions {
         // WEB
         // TODO - test this to make sure it works
         ACTIONS.add(new LLMAction("WEB_SEARCH_OPEN_UI", "Open web search.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
+        ACTIONS.add(new LLMAction("WEB_OPEN_URL", "Open a URL.", LLMActionType.STATIC, new String[]{"url"}, noneCap));
         ACTIONS.add(new LLMAction("WEB_SEARCH_TOP_RESULTS", "Search for a query on the web and return top results.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
         ACTIONS.add(new LLMAction("WEB_SEARCH_WIKI_INFO", "Search for a query on the web and return wiki info.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
         ACTIONS.add(new LLMAction("WEB_GET_URL_CONTENT", "Get the content of a URL.", LLMActionType.STATIC, new String[]{"url"}, noneCap));
@@ -105,9 +120,9 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("MEMORY_UPDATE", "Update a value in memory.", LLMActionType.STATIC, new String[]{"key", "value", "tags"}, notesCap));
 
         // ORDERS via shortcuts
-        ACTIONS.add(new LLMAction("ORDERS_CREATE_PRODUCT", "Create an order for product.", LLMActionType.UNDEFINED, new String[]{"product_query"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("ORDERS_CREATE_FOOD", "Create an order for food.", LLMActionType.UNDEFINED, new String[]{"food_query"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("ORDERS_CREATE_TAXI", "Create an order for taxi.", LLMActionType.UNDEFINED, new String[]{"taxi_query"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("ORDERS_CREATE_PRODUCT", "Create an order for product.", LLMActionType.DYNAMIC, new String[]{"product_query"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("ORDERS_CREATE_FOOD", "Create an order for food.", LLMActionType.DYNAMIC, new String[]{"food_query"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("ORDERS_CREATE_TAXI", "Create an order for taxi.", LLMActionType.DYNAMIC, new String[]{"taxi_query"}, appShortcutCap));
 
         // NOTIFICATIONS
         ACTIONS.add(new LLMAction("NOTIFICATIONS_GET", "Get notifications.", LLMActionType.STATIC, new String[]{}, noneCap));
@@ -115,15 +130,16 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("NOTIFICATIONS_SEND_SELF", "Send a notification.", LLMActionType.STATIC, new String[]{"notification_title", "notification_body", "intent_package", "intent_action", "intent_extra_input_value"}, noneCap));
 
         // MUSIC
-        ACTIONS.add(new LLMAction("MUSIC_PLAY", "Play music.", LLMActionType.UNDEFINED, new String[]{"music_name_or_style"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("MUSIC_PAUSE", "Pause music.", LLMActionType.UNDEFINED, new String[]{}, appShortcutCap));
-        ACTIONS.add(new LLMAction("MUSIC_SEARCH", "Search for music.", LLMActionType.UNDEFINED, new String[]{"music_query"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("MUSIC_PLAY", "Play music.", LLMActionType.DYNAMIC, new String[]{"music_name_or_style"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("MUSIC_PAUSE", "Pause music.", LLMActionType.DYNAMIC, new String[]{}, appShortcutCap));
+        ACTIONS.add(new LLMAction("MUSIC_SEARCH", "Search for music.", LLMActionType.DYNAMIC, new String[]{"music_query"}, appShortcutCap));
 
         // SOUND
         ACTIONS.add(new LLMAction("SOUND_GET_VOLUME", "Get sound volume level.", LLMActionType.STATIC, new String[]{}, noneCap));
         ACTIONS.add(new LLMAction("SOUND_SET_VOLUME", "Set sound volume level.", LLMActionType.STATIC, new String[]{"volume_level"}, noneCap));
         ACTIONS.add(new LLMAction("SOUND_MUTE", "Mute sound.", LLMActionType.STATIC, new String[]{}, noneCap));
         ACTIONS.add(new LLMAction("SOUND_UNMUTE", "Unmute sound.", LLMActionType.STATIC, new String[]{}, noneCap));
+        ACTIONS.add(new LLMAction("SOUND_BEEP", "Make a beep sound.", LLMActionType.STATIC, new String[]{}, noneCap));
 
         // VOICE IO
         ACTIONS.add(new LLMAction("VOICE_SAY_USER", "Say something to user.", LLMActionType.STATIC, new String[]{"voice_message"}, noneCap));
@@ -148,7 +164,7 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("APP_CLOSE", "Close an app.", LLMActionType.STATIC, new String[]{"app_id"}, appCap));
         ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP", "Launch a shortcut or app.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
         ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP_WITH_PARAMS", "Launch a shortcut or app with extra parameters.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "extra_input_values"}, appShortcutCap));
-        // add accessability actions to control apps or shortcuts
+        // add accessibility actions to control apps or shortcuts
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_FORWARD", "Scroll forward in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_BACKWARD", "Scroll backward in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_TO_POSITION", "Scroll to a specific position in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "position"}, appShortcutCap));
