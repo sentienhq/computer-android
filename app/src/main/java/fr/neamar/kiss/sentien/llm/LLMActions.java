@@ -3,17 +3,17 @@ package fr.neamar.kiss.sentien.llm;
 import java.util.ArrayList;
 
 enum LLMActionType {
-    STATIC, // Static actions are actions that can be performed by predefined intents
-    DYNAMIC, // Dynamic actions are actions that can be triggered by shortcuts or other found intents
-    DISABLED, // Disabled actions are actions that are disabled by the user
-    UNDEFINED // Undefined actions are actions that are not defined and will be processed by the LLM
+    STATIC, // actions that can be performed by predefined intents
+    DYNAMIC, // actions that can be triggered by shortcuts or other found intents
+    DISABLED, // actions that are disabled by the user and not accessible to LLM or user
+    UNDEFINED // actions are actions that are not defined and will be processed by the LLM to find the best action
 }
 
 enum LLMDataAccessCapability {
     CONTACTS,
     SHORTCUTS,
     APPS,
-    NOTES,
+    NOTES, // notes consists of content, type, parentId, childIds, timestamp, tags and types can be notes, aiConvo or aiMemory
     NONE
 }
 
@@ -44,15 +44,15 @@ public class LLMActions {
 
         // CONTACTS
         LLMDataAccessCapability[] contactsCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.CONTACTS};
-        ACTIONS.add(new LLMAction("CONTACTS_FIND", "Find a contact.", LLMActionType.STATIC, new String[]{"contact_name", "contact_phone"}, contactsCap));
-        ACTIONS.add(new LLMAction("CONTACTS_CREATE", "Add a new contact.", LLMActionType.STATIC, new String[]{"contact_name", "contact_phone", "contact_nickname", "contact_email"}, contactsCap));
-        ACTIONS.add(new LLMAction("CONTACTS_DELETE", "Delete a contact.", LLMActionType.STATIC, new String[]{"contact_name", "contact_phone"}, contactsCap));
+        ACTIONS.add(new LLMAction("CONTACTS_FIND", "Find a contact.", LLMActionType.STATIC, new String[]{"contact_query"}, noneCap));
+        ACTIONS.add(new LLMAction("CONTACTS_CREATE", "Add a new contact.", LLMActionType.STATIC, new String[]{"contact_name", "contact_phone", "contact_nickname", "contact_email"}, noneCap));
+        ACTIONS.add(new LLMAction("CONTACTS_DELETE", "Delete a contact.", LLMActionType.STATIC, new String[]{"contact_id", "contact_name", "contact_phone"}, contactsCap));
         ACTIONS.add(new LLMAction("CONTACTS_EDIT", "Edit a contact.", LLMActionType.STATIC, new String[]{"original_contact_name", "original_contact_phone", "new_contact_name", "new_contact_phone", "new_contact_nickname", "new_contact_email"}, contactsCap));
 
         // EVENTS
-        LLMDataAccessCapability[] eventsCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.CONTACTS, LLMDataAccessCapability.APPS, LLMDataAccessCapability.SHORTCUTS};
-        ACTIONS.add(new LLMAction("EVENTS_CREATE", "Create a new event in calendar or user defined app.", LLMActionType.UNDEFINED, new String[]{"app_shortcut_id", "event_name", "event_location", "event_description", "event_start_time", "event_end_time", "all_day", "extra_emails"}, eventsCap));
-        ACTIONS.add(new LLMAction("EVENTS_NEW_TASK", "Create a new task in calendar or user defined app.", LLMActionType.UNDEFINED, new String[]{"app_shortcut_id", "task_name", "task_location", "task_description", "task_start_time", "task_end_time"}, eventsCap));
+        LLMDataAccessCapability[] appShortcutContactsCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.CONTACTS, LLMDataAccessCapability.APPS, LLMDataAccessCapability.SHORTCUTS};
+        ACTIONS.add(new LLMAction("EVENTS_CREATE", "Create a new event in calendar or user defined app.", LLMActionType.DYNAMIC, new String[]{"app_shortcut_id", "event_name", "event_location", "event_description", "event_start_time", "event_end_time", "all_day", "extra_emails"}, appShortcutContactsCap));
+        ACTIONS.add(new LLMAction("EVENTS_NEW_TASK", "Create a new task in calendar or user defined app.", LLMActionType.DYNAMIC, new String[]{"app_shortcut_id", "task_name", "task_location", "task_description", "task_start_time", "task_end_time"}, appShortcutContactsCap));
 
         // CLOCK
         ACTIONS.add(new LLMAction("CLOCK_SET_ALARM", "Set an alarm.", LLMActionType.STATIC, new String[]{"alarm_name_msg", "alarm_time_hour", "alarm_time_minutes", "alarm_days"}, noneCap));
@@ -73,35 +73,36 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("CAMERA_SCAN_QR_CODE", "Scan a QR code.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
 
         // MESSAGING
-        LLMDataAccessCapability[] messagingCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.APPS, LLMDataAccessCapability.SHORTCUTS, LLMDataAccessCapability.CONTACTS};
-        ACTIONS.add(new LLMAction("MESSAGING_SEND_MESSAGE", "Send a message to a contact on a user defined app or shortcut.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "message"}, messagingCap));
-        ACTIONS.add(new LLMAction("MESSAGING_SEND_EMAIL", "Send an email to a contact on a users default app.", LLMActionType.STATIC, new String[]{"contact_name", "contact_email", "email_subject", "email_body"}, messagingCap));
-        ACTIONS.add(new LLMAction("MESSAGING_SEND_SMS", "Send an SMS to a contact on a user on a default sms app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "sms_body"}, messagingCap));
+        ACTIONS.add(new LLMAction("MESSAGING_SEND_MESSAGE", "Send a message to a contact on a user defined app or shortcut.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "message"}, appShortcutContactsCap));
+        ACTIONS.add(new LLMAction("MESSAGING_SEND_EMAIL", "Send an email to a contact on a users default app.", LLMActionType.STATIC, new String[]{"contact_name", "contact_email", "email_subject", "email_body"}, contactsCap));
+        ACTIONS.add(new LLMAction("MESSAGING_SEND_SMS", "Send an SMS to a contact on a user on a default sms app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "sms_body"}, contactsCap));
 
         // NOTES
         LLMDataAccessCapability[] notesCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.NOTES};
-        ACTIONS.add(new LLMAction("NOTES_FIND", "Find a note.", LLMActionType.DYNAMIC, new String[]{"note_query"}, notesCap));
-        ACTIONS.add(new LLMAction("NOTES_CREATE", "Create a new note.", LLMActionType.DYNAMIC, new String[]{"note_content", "note_tags"}, notesCap));
-        ACTIONS.add(new LLMAction("NOTES_DELETE", "Delete a note.", LLMActionType.DYNAMIC, new String[]{"note_id"}, notesCap));
-        ACTIONS.add(new LLMAction("NOTES_EDIT", "Edit a note.", LLMActionType.DYNAMIC, new String[]{"note_id", "note_content", "note_tags"}, notesCap));
+        ACTIONS.add(new LLMAction("NOTES_FIND", "Find a similar notes.", LLMActionType.STATIC, new String[]{"note_queries[]"}, notesCap));
+        ACTIONS.add(new LLMAction("NOTES_CREATE", "Create a new note.", LLMActionType.STATIC, new String[]{"note_content", "note_tags"}, noneCap));
+        ACTIONS.add(new LLMAction("NOTES_DELETE", "Delete a note.", LLMActionType.STATIC, new String[]{"note_id"}, notesCap));
+        ACTIONS.add(new LLMAction("NOTES_EDIT", "Edit a note.", LLMActionType.STATIC, new String[]{"note_id", "note_content", "note_tags"}, notesCap));
 
         // WEB
-        ACTIONS.add(new LLMAction("WEB_SEARCH_OPEN_UI", "Open web search.", LLMActionType.STATIC, new String[]{"search_query"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("WEB_SEARCH_TOP_RESULTS", "Search for a query on the web and return top results.", LLMActionType.STATIC, new String[]{"search_query"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("WEB_SEARCH_WIKI_INFO", "Search for a query on the web and return wiki info.", LLMActionType.STATIC, new String[]{"search_query"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("WEB_GET_URL_CONTENT", "Get the content of a URL.", LLMActionType.STATIC, new String[]{"url"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
+        // TODO - test this to make sure it works
+        ACTIONS.add(new LLMAction("WEB_SEARCH_OPEN_UI", "Open web search.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
+        ACTIONS.add(new LLMAction("WEB_SEARCH_TOP_RESULTS", "Search for a query on the web and return top results.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
+        ACTIONS.add(new LLMAction("WEB_SEARCH_WIKI_INFO", "Search for a query on the web and return wiki info.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
+        ACTIONS.add(new LLMAction("WEB_GET_URL_CONTENT", "Get the content of a URL.", LLMActionType.STATIC, new String[]{"url"}, noneCap));
 
         // Clipboard
-        ACTIONS.add(new LLMAction("CLIPBOARD_SET_TEXT", "Copy text to clipboard.", LLMActionType.STATIC, new String[]{"text"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("CLIPBOARD_GET_TEXT", "Get text from clipboard.", LLMActionType.STATIC, new String[]{}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("CLIPBOARD_CLEAR", "Clear clipboard.", LLMActionType.STATIC, new String[]{}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
+        ACTIONS.add(new LLMAction("CLIPBOARD_SET_TEXT", "Copy text to clipboard.", LLMActionType.STATIC, new String[]{"text"}, noneCap));
+        ACTIONS.add(new LLMAction("CLIPBOARD_GET_TEXT", "Get text from clipboard.", LLMActionType.STATIC, new String[]{}, noneCap));
+        ACTIONS.add(new LLMAction("CLIPBOARD_CLEAR", "Clear clipboard.", LLMActionType.STATIC, new String[]{}, noneCap));
 
         // MEMORY - long-term AI memory
-        ACTIONS.add(new LLMAction("MEMORY_ADD", "Add a value to memory.", LLMActionType.STATIC, new String[]{"key", "value", "tags"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("MEMORY_GET", "Get a value from memory.", LLMActionType.STATIC, new String[]{"key"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("MEMORY_DELETE", "Delete a value from memory.", LLMActionType.STATIC, new String[]{"key"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("MEMORY_FIND", "Find a value in memory.", LLMActionType.STATIC, new String[]{"query"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
-        ACTIONS.add(new LLMAction("MEMORY_UPDATE", "Update a value in memory.", LLMActionType.STATIC, new String[]{"key", "value", "tags"}, new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE}));
+        // notes consists of content, type, parentId, childIds, timestamp, tags and types can be notes, aiConvo or aiMemory
+        ACTIONS.add(new LLMAction("MEMORY_ADD", "Add a value to memory.", LLMActionType.STATIC, new String[]{"key", "value", "tags"}, noneCap));
+        ACTIONS.add(new LLMAction("MEMORY_GET", "Get a value from memory.", LLMActionType.STATIC, new String[]{"key"}, notesCap));
+        ACTIONS.add(new LLMAction("MEMORY_DELETE", "Delete a value from memory.", LLMActionType.STATIC, new String[]{"key"}, notesCap));
+        ACTIONS.add(new LLMAction("MEMORY_FIND", "Find a value in memory.", LLMActionType.STATIC, new String[]{"query"}, notesCap));
+        ACTIONS.add(new LLMAction("MEMORY_UPDATE", "Update a value in memory.", LLMActionType.STATIC, new String[]{"key", "value", "tags"}, notesCap));
 
         // ORDERS via shortcuts
         ACTIONS.add(new LLMAction("ORDERS_CREATE_PRODUCT", "Create an order for product.", LLMActionType.UNDEFINED, new String[]{"product_query"}, appShortcutCap));
@@ -118,6 +119,12 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("MUSIC_PAUSE", "Pause music.", LLMActionType.UNDEFINED, new String[]{}, appShortcutCap));
         ACTIONS.add(new LLMAction("MUSIC_SEARCH", "Search for music.", LLMActionType.UNDEFINED, new String[]{"music_query"}, appShortcutCap));
 
+        // SOUND
+        ACTIONS.add(new LLMAction("SOUND_GET_VOLUME", "Get sound volume level.", LLMActionType.STATIC, new String[]{}, noneCap));
+        ACTIONS.add(new LLMAction("SOUND_SET_VOLUME", "Set sound volume level.", LLMActionType.STATIC, new String[]{"volume_level"}, noneCap));
+        ACTIONS.add(new LLMAction("SOUND_MUTE", "Mute sound.", LLMActionType.STATIC, new String[]{}, noneCap));
+        ACTIONS.add(new LLMAction("SOUND_UNMUTE", "Unmute sound.", LLMActionType.STATIC, new String[]{}, noneCap));
+
         // VOICE IO
         ACTIONS.add(new LLMAction("VOICE_SAY_USER", "Say something to user.", LLMActionType.STATIC, new String[]{"voice_message"}, noneCap));
         ACTIONS.add(new LLMAction("VOICE_SAY_DEVICE", "Say something to device or caller.", LLMActionType.STATIC, new String[]{"voice_message"}, noneCap));
@@ -130,8 +137,8 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("USER_INPUT", "Get user input text, boolean or number.", LLMActionType.STATIC, new String[]{"input_type"}, noneCap));
 
         // CALLING
-        ACTIONS.add(new LLMAction("PHONE_CALL", "Call a phone number.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone"}, noneCap));
-        ACTIONS.add(new LLMAction("PHONE_CALL_WITH_MESSAGE", "Call a phone number with a message.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "message"}, noneCap));
+        ACTIONS.add(new LLMAction("PHONE_CALL", "Call a phone number.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone"}, appShortcutContactsCap));
+        ACTIONS.add(new LLMAction("PHONE_CALL_WITH_MESSAGE", "Call a phone number with a message.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "message"}, appShortcutContactsCap));
         ACTIONS.add(new LLMAction("PHONE_HANGUP", "Hang up a phone call.", LLMActionType.STATIC, new String[]{}, noneCap));
         ACTIONS.add(new LLMAction("PHONE_PICK_UP", "Pick up a phone call.", LLMActionType.STATIC, new String[]{}, noneCap));
 
