@@ -1,4 +1,4 @@
-package fr.neamar.kiss.sentien;
+package fr.neamar.kiss.sentien.llm;
 
 import android.content.Context;
 import android.content.Intent;
@@ -25,7 +25,6 @@ import fr.neamar.kiss.pojo.ContactsPojo;
 import fr.neamar.kiss.pojo.NotePojo;
 import fr.neamar.kiss.pojo.ShortcutPojo;
 import fr.neamar.kiss.utils.Permission;
-import fr.neamar.kiss.utils.TimeUtils;
 import okhttp3.*;
 
 public class LLMService {
@@ -98,16 +97,16 @@ public class LLMService {
         StringBuilder systemPrompt = new StringBuilder();
         systemPrompt.append("You are an AI assistant with access to the following capabilities and data:\n\n");
         if (requiredCapabilities.contains("apps")) {
-            systemPrompt.append("Installed Apps:\n").append(getInstalledApps()).append("\n\n");
-        }
-        if (true) {
-            systemPrompt.append("Available Shortcuts:\n").append(getAvailableShortcuts()).append("\n\n");
+            systemPrompt.append("Installed Apps and Shortcuts:\n").append(getInstalledApps()).append("\n\n");
         }
         if (requiredCapabilities.contains("contacts")) {
             systemPrompt.append("Contacts:\n").append(getContacts()).append("\n\n");
         }
         if (requiredCapabilities.contains("notes")) {
-            systemPrompt.append("Notes:\n").append(getNotes()).append("\n\n");
+            systemPrompt.append("User personal notes:\n").append(getNotes()).append("\n\n");
+        }
+        if (requiredCapabilities.contains("memory")) {
+            systemPrompt.append("AI Long-term memory:\n").append(getMemory()).append("\n\n");
         }
         systemPrompt.append("Device current info:\n\n");
         // add phone time, date, timezone, battery, network, etc.
@@ -276,25 +275,22 @@ public class LLMService {
     private void executeIntent(String triggerIntent, String intentPackage, String extraIntentInput) {
         Log.d(TAG, "Values : " + triggerIntent + ", " + intentPackage + ", " + extraIntentInput);
         switch (triggerIntent) {
-            case "OPEN_APP":
+            case "OPEN_APP": {
                 //KissApplication.getApplication(context).getDataHandler().addToHistory("app://" + extraIntentInput + "/" + extraIntentInput);
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setPackage(intentPackage);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intent);
-                break;
-            case "NAVIGATE":
+            }
+            break;
+            case "NAVIGATE": {
                 Intent intentNavigate = new Intent(Intent.ACTION_VIEW);
                 intentNavigate.setData(Uri.parse("geo:0,0?q=" + extraIntentInput));
                 intentNavigate.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(intentNavigate);
-                break;
-            case "CALL_CONTACT":
-
-                // KissApplication.getApplication(context).getDataHandler().addToHistory("contact://" + extraIntentInput + "/" + extraIntentInput);
-                // Find contact and get phone number
-
-
+            }
+            break;
+            case "CALL_CONTACT": {
                 Intent phoneIntent = new Intent(Intent.ACTION_CALL);
                 phoneIntent.setData(Uri.parse(extraIntentInput));
                 phoneIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -315,17 +311,18 @@ public class LLMService {
                 } else {
                     context.startActivity(phoneIntent);
                 }
-
                 Log.d(TAG, "Calling: " + intentPackage + ", " + extraIntentInput);
-                break;
-            case "RUN_SHORTCUT":
+            }
+            break;
+            case "RUN_SHORTCUT": {
                 KissApplication.getApplication(context).getDataHandler().addToHistory("shortcut://" + intentPackage + "/" + extraIntentInput);
                 Intent shortcutIntent = new Intent(Intent.ACTION_VIEW);
                 shortcutIntent.setPackage(intentPackage);
                 shortcutIntent.setData(Uri.parse(extraIntentInput));
                 shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(shortcutIntent);
-                break;
+            }
+            break;
             case "NONE":
                 break;
         }
@@ -455,5 +452,7 @@ public class LLMService {
         void onSuccess(String result);
 
         void onError(String error);
+
+        void onUpdate(String result);
     }
 }

@@ -10,6 +10,7 @@ import androidx.annotation.CallSuper;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +18,8 @@ import java.util.concurrent.Executors;
 
 import fr.neamar.kiss.KissApplication;
 import fr.neamar.kiss.MainActivity;
+import fr.neamar.kiss.db.DBHelper;
+import fr.neamar.kiss.db.ValuedHistoryRecord;
 import fr.neamar.kiss.pojo.Pojo;
 import fr.neamar.kiss.pojo.RelevanceComparator;
 import fr.neamar.kiss.result.Result;
@@ -28,8 +31,8 @@ public abstract class Searcher extends AsyncTask<Void, Result<?>, Void> {
     static final int DEFAULT_MAX_RESULTS = 30;
     private static final String TAG = Searcher.class.getSimpleName();
     protected final String query;
+    protected final PriorityQueue<Pojo> processedPojos;
     final WeakReference<MainActivity> activityWeakReference;
-    private final PriorityQueue<Pojo> processedPojos;
     /**
      * Set to true when we are simply refreshing current results (scroll will not be reset)
      * When false, we reset the scroll back to the last item in the list
@@ -57,7 +60,7 @@ public abstract class Searcher extends AsyncTask<Void, Result<?>, Void> {
      * Add single pojo to results.
      * This is called from the background thread by the providers.
      */
-    public final boolean addResult(Pojo pojos) {
+    public boolean addResult(Pojo pojos) {
         return addResults(Collections.singletonList(pojos));
     }
 

@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import fr.neamar.kiss.DataHandler;
+import fr.neamar.kiss.sentien.llm.LLMService;
 
 public class ComputerModule {
     public static final String MODULE_NAME = "Computer";

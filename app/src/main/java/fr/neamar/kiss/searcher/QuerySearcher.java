@@ -19,15 +19,19 @@ import fr.neamar.kiss.pojo.Pojo;
  */
 public class QuerySearcher extends Searcher {
     private static int MAX_RESULT_COUNT = -1;
-    private HashMap<String, Integer> knownIds;
     /**
      * Store user preferences
      */
     private final SharedPreferences prefs;
+    private HashMap<String, Integer> knownIds;
 
     public QuerySearcher(MainActivity activity, String query, boolean isRefresh) {
         super(activity, query, isRefresh);
         prefs = PreferenceManager.getDefaultSharedPreferences(activity);
+    }
+
+    public static void clearMaxResultCountCache() {
+        MAX_RESULT_COUNT = -1;
     }
 
     @Override
@@ -84,9 +88,5 @@ public class QuerySearcher extends Searcher {
         // Request results via "addResult"
         KissApplication.getApplication(activity).getDataHandler().requestResults(query, this);
         return null;
-    }
-
-    public static void clearMaxResultCountCache() {
-        MAX_RESULT_COUNT = -1;
     }
 }

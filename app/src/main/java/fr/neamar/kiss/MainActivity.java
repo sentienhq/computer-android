@@ -66,7 +66,7 @@ import fr.neamar.kiss.searcher.Searcher;
 import fr.neamar.kiss.searcher.TagsSearcher;
 import fr.neamar.kiss.searcher.UntaggedSearcher;
 import fr.neamar.kiss.sentien.ComputerModule;
-import fr.neamar.kiss.sentien.LLMService;
+import fr.neamar.kiss.sentien.llm.LLMService;
 import fr.neamar.kiss.sentien.WebAppInterface;
 import fr.neamar.kiss.ui.AnimatedListView;
 import fr.neamar.kiss.ui.KeyboardScrollHider;
@@ -603,6 +603,13 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 public void onSuccess(String result) {
                     newNote.contentReply = result;
                     dh.updateNote(newNote);
+                    System.gc();
+                }
+
+                @Override
+                public void onUpdate(String result) {
+                    newNote.contentReply = result;
+                    dh.updateNote(newNote);
                 }
 
                 @Override
@@ -611,6 +618,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                     newNote.contentReply = "Rekt " + error;
                     dh.updateNote(newNote);
                     Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show();
+                    System.gc();
                 }
             });
 
