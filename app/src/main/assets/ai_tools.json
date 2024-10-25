@@ -1,0 +1,617 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "SIMPLE_ANSWER",
+      "description": "Just reply to user with answer and do no other activity.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "smart_answer": {
+            "type": "string",
+            "description": "The answer to provide to the user."
+          }
+        },
+        "required": [
+          "smart_answer"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "GET_CAPABILITY",
+      "description": "Get the required data capabilities for the AI to make decisions. Possible types are CONTACTS, SHORTCUTS, APPS or NOTES.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "capabilityType": {
+            "type": "string",
+            "enum": [
+              "CONTACTS",
+              "SHORTCUTS",
+              "APPS",
+              "NOTES"
+            ],
+            "description": "Type of capability to retrieve (e.g., CONTACTS, SHORTCUTS, APPS, NOTES)."
+          },
+          "capabilityQuery": {
+            "type": "string",
+            "description": "Specific query or subject to search within the capability type."
+          }
+        },
+        "required": [
+          "capabilityType",
+          "capabilityQuery"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "EXECUTION_REEVALUATE",
+      "description": "This command should be used to re-evaluate the action list with results and continue processing.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "EXECUTION_END",
+      "description": "This is returned at the end of the task list for everyone to know when to stop processing.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "WORKING_MEMORY_CLEAR",
+      "description": "Clear AI working memory.",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "WORKING_MEMORY_SAVE",
+      "description": "Save data to working memory for future AI processing.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "The data to save into working memory."
+          }
+        },
+        "required": [
+          "data"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "CONTACTS_FIND",
+      "description": "Find a contact.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "contact_query": {
+            "type": "string",
+            "description": "The query to search for contacts (e.g., name or part of the name)."
+          }
+        },
+        "required": [
+          "contact_query"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "CONTACTS_CREATE",
+      "description": "Add a new contact.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "contact_name": {
+            "type": "string",
+            "description": "The full name of the contact."
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "The phone number of the contact."
+          },
+          "contact_nickname": {
+            "type": "string",
+            "description": "The nickname of the contact (optional)."
+          },
+          "contact_email": {
+            "type": "string",
+            "description": "The email address of the contact (optional)."
+          }
+        },
+        "required": [
+          "contact_name",
+          "contact_phone"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "EVENTS_CREATE",
+      "description": "Create a new event in calendar or user-defined app.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the app or shortcut to use."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "The name/title of the event."
+          },
+          "event_location": {
+            "type": "string",
+            "description": "The location of the event (optional)."
+          },
+          "event_description": {
+            "type": "string",
+            "description": "A description of the event (optional)."
+          },
+          "event_start_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The start time of the event in ISO 8601 format."
+          },
+          "event_end_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The end time of the event in ISO 8601 format."
+          },
+          "all_day": {
+            "type": "boolean",
+            "description": "Whether the event is an all-day event."
+          },
+          "extra_emails": {
+            "type": "string",
+            "description": "Additional email addresses to invite to the event (comma-separated)."
+          }
+        },
+        "required": [
+          "app_shortcut_id",
+          "event_name",
+          "event_start_time",
+          "event_end_time",
+          "all_day"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "NAVIGATION_TO",
+      "description": "Navigate to a location string address.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the navigation app or shortcut to use."
+          },
+          "location_name": {
+            "type": "string",
+            "description": "The destination address or place name."
+          }
+        },
+        "required": [
+          "app_or_shortcut_id",
+          "location_name"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "NAVIGATION_FIND_NEARBY_CATEGORY",
+      "description": "Find nearby category.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "category_name": {
+            "type": "string",
+            "description": "The category to find nearby (e.g., restaurants, hotels)."
+          }
+        },
+        "required": [
+          "category_name"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "MESSAGING_SEND_MESSAGE",
+      "description": "Send a message to a contact on a user-defined app or shortcut.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the messaging app or shortcut to use."
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "The name of the contact to message."
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "The phone number of the contact."
+          },
+          "message": {
+            "type": "string",
+            "description": "The message content to send."
+          }
+        },
+        "required": [
+          "app_or_shortcut_id",
+          "contact_name",
+          "contact_phone",
+          "message"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "MESSAGING_SEND_EMAIL",
+      "description": "Send an email to a contact using the user's default app.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "contact_name": {
+            "type": "string",
+            "description": "The name of the contact to email."
+          },
+          "contact_email": {
+            "type": "string",
+            "description": "The email address of the contact."
+          },
+          "email_subject": {
+            "type": "string",
+            "description": "The subject of the email."
+          },
+          "email_body": {
+            "type": "string",
+            "description": "The body content of the email."
+          }
+        },
+        "required": [
+          "contact_name",
+          "contact_email",
+          "email_subject"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "MESSAGING_SEND_SMS",
+      "description": "Send an SMS to a contact using the default SMS app or shortcut.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the SMS app or shortcut to use."
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "The name of the contact to message."
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "The phone number of the contact."
+          },
+          "sms_body": {
+            "type": "string",
+            "description": "The SMS message content to send."
+          }
+        },
+        "required": [
+          "app_or_shortcut_id",
+          "contact_name",
+          "contact_phone",
+          "sms_body"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "NOTES_FIND",
+      "description": "Find similar notes.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "note_queries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of queries to search within notes."
+          }
+        },
+        "required": [
+          "note_queries"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "NOTES_CREATE",
+      "description": "Create a new note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "note_content": {
+            "type": "string",
+            "description": "The content of the note."
+          },
+          "note_tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags associated with the note (optional)."
+          }
+        },
+        "required": [
+          "note_content"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "WEB_SEARCH_OPEN_UI",
+      "description": "Open web search.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "search_query": {
+            "type": "string",
+            "description": "The query to search on the web."
+          }
+        },
+        "required": [
+          "search_query"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "WEB_OPEN_URL",
+      "description": "Open a URL.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL to open."
+          }
+        },
+        "required": [
+          "url"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "VOICE_SAY_USER",
+      "description": "Say something to the user.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "voice_message": {
+            "type": "string",
+            "description": "The message to speak to the user."
+          }
+        },
+        "required": [
+          "voice_message"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "PHONE_CALL",
+      "description": "Call a phone number.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the phone app or shortcut to use."
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "The name of the contact to call."
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "The phone number to call."
+          }
+        },
+        "required": [
+          "contact_phone"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "PHONE_CALL_WITH_MESSAGE",
+      "description": "Call a phone number with a message.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the phone app or shortcut to use."
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "The name of the contact to call."
+          },
+          "contact_phone": {
+            "type": "string",
+            "description": "The phone number to call."
+          },
+          "message": {
+            "type": "string",
+            "description": "The message to convey during the call."
+          }
+        },
+        "required": [
+          "contact_phone",
+          "message"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "APP_OPEN",
+      "description": "Open an app.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_id": {
+            "type": "string",
+            "description": "The ID of the app to open."
+          }
+        },
+        "required": [
+          "app_id"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "APP_LAUNCH_SHORTCUT_OR_APP",
+      "description": "Launch a shortcut or app.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the app or shortcut to launch."
+          }
+        },
+        "required": [
+          "app_or_shortcut_id"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "APP_LAUNCH_SHORTCUT_OR_APP_WITH_PARAMS",
+      "description": "Launch a shortcut or app with extra intent input parameters.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "app_or_shortcut_id": {
+            "type": "string",
+            "description": "The ID of the app or shortcut to launch."
+          },
+          "extra_input_values": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "The key of the extra parameter."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The value of the extra parameter."
+                }
+              },
+              "required": [
+                "key",
+                "value"
+              ]
+            },
+            "description": "Array of key-value pairs for extra intent input parameters."
+          }
+        },
+        "required": [
+          "app_or_shortcut_id",
+          "extra_input_values"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "UTILS_DELAY",
+      "description": "Delay for a given amount of time in milliseconds.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "delay_in_ms": {
+            "type": "integer",
+            "description": "The delay duration in milliseconds."
+          }
+        },
+        "required": [
+          "delay_in_ms"
+        ]
+      }
+    }
+  }
+]

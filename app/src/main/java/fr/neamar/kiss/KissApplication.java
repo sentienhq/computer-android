@@ -6,7 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
+import android.os.Build;
+import android.telephony.TelephonyManager;
 
 import fr.neamar.kiss.utils.IconPackCache;
 
@@ -103,7 +109,84 @@ public class KissApplication extends Application {
     }
 
     public String getNetworkType() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        return cm.getActiveNetworkInfo().getSubtypeName();
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        StringBuilder result = new StringBuilder();
+
+        boolean isWifiConnected = false;
+        boolean isCellularConnected = false;
+        String wifiName = null;
+        String cellularOperatorName = null;
+
+        if (connectivityManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // For Android 6.0 (API level 23) and above
+                android.net.Network activeNetwork = connectivityManager.getActiveNetwork();
+                NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork);
+
+                if (networkCapabilities != null) {
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                        isWifiConnected = true;
+                        // Get the Wi-Fi network name (SSID)
+                        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        if (wifiInfo != null) {
+                            wifiName = wifiInfo.getSSID();
+                            // Remove quotes if SSID is enclosed
+                            if (wifiName.startsWith("\"") && wifiName.endsWith("\"")) {
+                                wifiName = wifiName.substring(1, wifiName.length() - 1);
+                            }
+                        }
+                    }
+                    if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                        isCellularConnected = true;
+                        // Get cellular network operator name
+                        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                        cellularOperatorName = telephonyManager.getNetworkOperatorName();
+                    }
+                }
+            } else {
+                // For devices below Android 6.0
+                NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+                        isWifiConnected = true;
+                        // Get Wi-Fi network name
+                        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        if (wifiInfo != null) {
+                            wifiName = wifiInfo.getSSID();
+                            // Remove quotes if SSID is enclosed
+                            if (wifiName.startsWith("\"") && wifiName.endsWith("\"")) {
+                                wifiName = wifiName.substring(1, wifiName.length() - 1);
+                            }
+                        }
+                    } else if (networkInfo.getType() == ConnectivityManager.TYPE_MOBILE) {
+                        isCellularConnected = true;
+                        // Get cellular network operator name
+                        TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                        cellularOperatorName = telephonyManager.getNetworkOperatorName();
+                    }
+                }
+            }
+
+            // Build the result string
+            if (isWifiConnected && wifiName != null) {
+                result.append("Connected to Wi-Fi (").append(wifiName).append(")");
+            }
+            if (isCellularConnected && cellularOperatorName != null) {
+                if (result.length() > 0) {
+                    result.append(" and ");
+                }
+                result.append("Connected to Cellular Network (").append(cellularOperatorName).append(")");
+            }
+            if (!isWifiConnected && !isCellularConnected) {
+                return "Not connected to any network";
+            }
+
+            return result.toString();
+        }
+
+        return "Unable to determine network status";
+
     }
 }
