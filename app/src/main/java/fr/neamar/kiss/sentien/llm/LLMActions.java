@@ -1,13 +1,24 @@
 package fr.neamar.kiss.sentien.llm;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
 import org.jetbrains.annotations.Contract;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import fr.neamar.kiss.DataHandler;
+import fr.neamar.kiss.KissApplication;
+import fr.neamar.kiss.pojo.AppPojo;
+import fr.neamar.kiss.pojo.ContactsPojo;
+import fr.neamar.kiss.pojo.Pojo;
+import fr.neamar.kiss.searcher.BackgroundQuerySearcher;
 
 enum LLMActionType {
     STATIC, // actions that can be performed by predefined intents
@@ -76,6 +87,7 @@ class LLMAction {
 }
 
 public class LLMActions {
+    private static final String TAG = "\uD83D\uDCAC LLMActions";
     private final ArrayList<LLMAction> ACTIONS = new ArrayList<>();
     public String stringList = "";
 
@@ -84,13 +96,14 @@ public class LLMActions {
         // NONE or ANSWER
         LLMDataAccessCapability[] noneCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.NONE};
         ACTIONS.add(new LLMAction("SIMPLE_ANSWER", "Just reply to user with answer and do no other activity.", LLMActionType.STATIC, new String[]{"smart_answer"}, noneCap));
-
+        ACTIONS.add(new LLMAction("ASK_QUESTION", "Ask a question to the user. The question should be in the user_request field.", LLMActionType.DISABLED, new String[]{"user_question"}, noneCap));
+        ACTIONS.add(new LLMAction("ASK_OPTIONS", "Ask a question to the user. The question should be in the user_request field. The options should be in the array with string values.", LLMActionType.DISABLED, new String[]{"user_question", "options"}, noneCap));
         // GET CAPABILITIES
         // for example, to get the capabilities of the user's contacts send capabilityType="CONTACTS" and capabilityQuery="imrich" for specific subjects
         // to get the capabilities of the user's notes send capabilityType="NOTES" and capabilityQuery="imrich, work, personal" for specific subjects (note: the subjects are comma separated) and filtered by the user's tags and content
         // to get all contacts send capabilityType="CONTACTS" and capabilityQuery="*" (avoid it as much as possible)
         // it is recommended to send specific capabilityQuery to get more specific data and save the result in memory
-        ACTIONS.add(new LLMAction("GET_CAPABILITY", "Get the required data capabilities for the AI to make decisions. Possible types are CONTACTS, SHORTCUTS, APPS or NOTES.", LLMActionType.STATIC, new String[]{"capabilityType", "capabilityQuery"}, noneCap));
+        ACTIONS.add(new LLMAction("GET_CAPABILITY", "Get the required data capabilities for the AI to make decisions. Possible types are CONTACTS, SHORTCUTS, APPS or NOTES. To get the capabilities of the user's contacts send capabilityType=\"CONTACTS\" and capabilityQuery=\"imrich\" for specific subjects. To get the capabilities of the user's notes send capabilityType=\"NOTES\" and capabilityQuery=\"imrich, work, personal\" for specific subjects (note: the subjects are comma separated) and filtered by the user's tags and content. To get all contacts send capabilityType=\"CONTACTS\" and capabilityQuery=\"*\" (avoid it as much as possible). It is recommended to send specific capabilityQuery to get more specific data and save the result in memory.", LLMActionType.STATIC, new String[]{"capabilityType", "capabilityQuery"}, noneCap));
 
         // execution tasks
         ACTIONS.add(new LLMAction("EXECUTION_REEVALUATE", "This command should be used to re-evaluate the action list with results and continue processing.", LLMActionType.STATIC, new String[]{}, noneCap));
@@ -211,7 +224,7 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("APP_OPEN", "Open an app.", LLMActionType.STATIC, new String[]{"app_id"}, appCap));
         ACTIONS.add(new LLMAction("APP_CLOSE", "Close an app.", LLMActionType.DISABLED, new String[]{"app_id"}, appCap));
         ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP", "Launch a shortcut or app.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP_WITH_PARAMS", "Launch a shortcut or app with extra intent input parameters - use array.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "extra_input_values[key, value]"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP_WITH_PARAMS", "Launch a shortcut or app with extra intent input parameters - use String separated by comma.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "extra_input_values"}, appShortcutCap));
         // add accessibility actions to control apps or shortcuts
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_FORWARD", "Scroll forward in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_BACKWARD", "Scroll backward in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
@@ -269,26 +282,48 @@ public class LLMActions {
         return sb.toString();
     }
 
-    public String processAction(String actionName, JSONObject actionParams) {
+    public LLMService.ActionResultImpl processAction(Context context, String actionName, JSONObject actionParams) {
         try {
+            Log.d(TAG, "processAction: " + actionName + " params: " + actionParams.toString());
             switch (actionName) {
                 case "SIMPLE_ANSWER": {
                     String smartAnswer = actionParams.getString("smart_answer");
                     if (smartAnswer != null) {
-                        return smartAnswer;
+                        return new LLMService.ActionResultImpl(true, smartAnswer, "replied to user:" + smartAnswer);
                     }
-                    return "";
+                    return new LLMService.ActionResultImpl(false, "Error: LLM send a wrong message", "smart_answer is null or not provided");
                 }
                 case "GET_CAPABILITY": {
-                    // return getCapability(actionParams);
-                    return "";
+                    String capabilityType = actionParams.getString("capabilityType");
+                    String capabilityQuery = actionParams.getString("capabilityQuery");
+                    String resultString = new BackgroundQuerySearcher(context, capabilityType, capabilityQuery).searchGetResultString();
+                    Log.d(TAG, "GET_CAPABILITY result: " + resultString);
+                    return new LLMService.ActionResultImpl(true, "LLM obtained new " + capabilityType + " capabilities", resultString);
                 }
+                case "APP_OPEN": {
+                    String intentPackage = actionParams.getString("app_id");
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setPackage(intentPackage);
+                    if (actionParams.has("extra_input_values")) {
+                        String extraInputValues = actionParams.getString("extra_input_values");
+                        String[] extraInputValuesArray = extraInputValues.split(",");
+                        for (String extraInputValue : extraInputValuesArray) {
+                            String[] extraInputValueArray = extraInputValue.split("=");
+                            if (extraInputValueArray.length == 2) {
+                                intent.putExtra(extraInputValueArray[0], extraInputValueArray[1]);
+                            }
+                        }
+                    }
+                    context.startActivity(intent);
+                    return new LLMService.ActionResultImpl(true, "App opened", "App opened");
+                }
+                default:
+                    return new LLMService.ActionResultImpl(false, "Unknown action: " + actionParams, "action not implemented");
             }
         } catch (Exception e) {
             //Log.e(TAG, "Error processing action", e);
-            return "Error processing action";
+            return new LLMService.ActionResultImpl(false, "In " + actionName + " error: " + e.getMessage(), "Error in " + actionName + " error: " + e.getMessage());
         }
-        return actionName;
     }
 
 

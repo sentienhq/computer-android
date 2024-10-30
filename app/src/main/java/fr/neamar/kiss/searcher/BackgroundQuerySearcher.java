@@ -3,98 +3,177 @@ package fr.neamar.kiss.searcher;
 import android.content.Context;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import fr.neamar.kiss.KissApplication;
 import fr.neamar.kiss.db.DBHelper;
 import fr.neamar.kiss.db.ValuedHistoryRecord;
+import fr.neamar.kiss.normalizer.StringNormalizer;
+import fr.neamar.kiss.pojo.AppPojo;
+import fr.neamar.kiss.pojo.ContactsPojo;
+import fr.neamar.kiss.pojo.NotePojo;
 import fr.neamar.kiss.pojo.Pojo;
+import fr.neamar.kiss.pojo.ShortcutPojo;
+import fr.neamar.kiss.utils.FuzzyScore;
 
-public class BackgroundQuerySearcher extends Searcher {
+public class BackgroundQuerySearcher {
+    private static final String TAG = "\uD83D\uDCAC BackgroundQuerySearcher";
     private final Context context;
-    private final SearchResultsCallback callback;
+    private final String capabilityType;
+    private final String queryString;
+    private final String[] queries;
+    private final ArrayList<FuzzyScore> queriesNormalizedScores;
     private final HashMap<String, Integer> knownIds;
 
-    public BackgroundQuerySearcher(Context context, String query, SearchResultsCallback callback) {
-        super(null, query, false); // Pass 'null' as MainActivity
-        this.context = context.getApplicationContext();
-        this.callback = callback;
+    public BackgroundQuerySearcher(Context context, String capabilityType, String queryString) {
+        this.context = context;
+        this.capabilityType = capabilityType;
+        this.queryString = queryString;
+        this.queries = queryString.contains(",") ? queryString.split(",") : new String[]{queryString};
+        this.queriesNormalizedScores = new ArrayList<>();
+        for (String query : queries) {
+            StringNormalizer.Result sn = StringNormalizer.normalizeWithResult(query.trim(), false);
+            queriesNormalizedScores.add(new FuzzyScore(sn.codePoints, true));
+        }
         this.knownIds = new HashMap<>();
     }
 
-    @Override
-    protected Void doInBackground(Void... voids) {
-        // Collect previous results to boost relevance
-        List<ValuedHistoryRecord> lastIdsForQuery = DBHelper.getPreviousResultsForQuery(context, query);
-        for (ValuedHistoryRecord id : lastIdsForQuery) {
-            knownIds.put(id.record, id.value);
-        }
-
-        // Request results via "addResult"
-        KissApplication.getApplication(context).getDataHandler().requestResults(query, this);
-
-        return null;
+    private <T extends Pojo> List<T> filterAndProcessResults(List<T> items) {
+        return items.stream()
+                .filter(pojo -> {
+                    StringNormalizer.Result pojoNormalized = pojo.normalizedName != null ? pojo.normalizedName : StringNormalizer.normalizeWithResult(pojo.getName(), false);
+                    return queriesNormalizedScores.stream().anyMatch(fuzzyScore -> {
+                        FuzzyScore.MatchInfo matchInfo = fuzzyScore.match(pojoNormalized.codePoints);
+                        if (matchInfo.match && matchInfo.score > 4) {
+                            pojo.relevance += matchInfo.score;
+                            adjustRelevance(pojo);
+                            return true;
+                        }
+                        return false;
+                    });
+                })
+                .sorted((p1, p2) -> Integer.compare(p2.relevance, p1.relevance))
+                .limit(30)
+                .collect(Collectors.toList());
     }
 
-    @Override
-    public boolean addResult(Pojo pojo) {
-        if (isCancelled())
-            return false;
+    public List<Pojo> search() {
+        loadPreviousSelections();
+        List<Pojo> results = new ArrayList<>();
+        // Perform search based on capability type
+        switch (capabilityType.toUpperCase()) {
+            case "APPS":
+                results.addAll(searchApps());
+                break;
+            case "CONTACTS":
+                results.addAll(searchContacts());
+                break;
+            case "SHORTCUTS":
+                results.addAll(searchShortcuts());
+                break;
+            case "NOTES":
+                results.addAll(searchNotes());
+                break;
+            default:
+                break;
+        }
+        return results;
+    }
 
+    public String searchGetResultString() {
+        try {
+            List<Pojo> results = this.search();
+            JSONObject mainJsonObject = new JSONObject();
+            mainJsonObject.put("capabilityType", this.capabilityType);
+
+            // Create a JSONArray to hold each result JSON object
+            JSONArray capabilityResults = new JSONArray();
+            for (Pojo pojo : results) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("id", pojo.id);
+                switch (this.capabilityType) {
+                    case "APPS":
+                        jsonObject.put("appName", ((AppPojo) pojo).getName());
+                        break;
+                    case "CONTACTS":
+                        jsonObject.put("contactName", ((ContactsPojo) pojo).getName());
+                        jsonObject.put("contactNickname", ((ContactsPojo) pojo).normalizedNickname);
+                        jsonObject.put("contactPhone", ((ContactsPojo) pojo).phone);
+                        jsonObject.put("contactIsPrimary", ((ContactsPojo) pojo).isHomeNumber());
+                        List<Pojo> adjustedShortcuts = new BackgroundQuerySearcher(this.context, "SHORTCUTS", ": " + pojo.getName()).search();
+                        if (adjustedShortcuts.size() > 0) {
+                            JSONArray shortcutArray = new JSONArray();
+                            for (Pojo shortcut : adjustedShortcuts) {
+                                JSONObject shortcutJson = new JSONObject();
+                                shortcutJson.put("shortcutPackageName", ((ShortcutPojo) shortcut).packageName);
+                                shortcutJson.put("shortcutName", ((ShortcutPojo) shortcut).getName());
+                                shortcutJson.put("shortcutIntentUri", ((ShortcutPojo) shortcut).intentUri);
+                                shortcutArray.put(shortcutJson);
+                            }
+                            jsonObject.put("contactAdjustedShortcuts", shortcutArray);
+                        }
+                        break;
+                    case "SHORTCUTS":
+                        jsonObject.put("shortcutPackageName", ((ShortcutPojo) pojo).packageName);
+                        jsonObject.put("shortcutName", ((ShortcutPojo) pojo).getName());
+                        jsonObject.put("shortcutIntentUri", ((ShortcutPojo) pojo).intentUri);
+                        break;
+                    case "NOTES":
+                        jsonObject.put("noteType", ((NotePojo) pojo).type.toString());
+                        jsonObject.put("noteContent", ((NotePojo) pojo).content);
+                        break;
+                }
+                jsonObject.put("relevance", pojo.relevance);
+                capabilityResults.put(jsonObject); // Add each JSON object to the array
+            }
+
+            // Put the array into the main JSON object
+            mainJsonObject.put("capabilityResults", capabilityResults);
+
+            return mainJsonObject.toString(); // Return the JSON string
+        } catch (JSONException e) {
+            return "no results";
+        }
+    }
+
+    private void loadPreviousSelections() {
+        for (String query : queries) {
+            DBHelper.getPreviousResultsForQuery(this.context, query).forEach(id -> knownIds.put(id.record, id.value));
+        }
+    }
+
+    private List<AppPojo> searchApps() {
+        return filterAndProcessResults(KissApplication.getApplication(this.context).getDataHandler().getApplications());
+    }
+
+    private List<ContactsPojo> searchContacts() {
+        return filterAndProcessResults(KissApplication.getApplication(this.context).getDataHandler().getContacts());
+    }
+
+    private List<ShortcutPojo> searchShortcuts() {
+        return filterAndProcessResults(KissApplication.getApplication(this.context).getDataHandler().getShortcuts());
+    }
+
+    private List<NotePojo> searchNotes() {
+        return filterAndProcessResults(KissApplication.getApplication(this.context).getDataHandler().getAllNotes());
+    }
+
+    private void adjustRelevance(Pojo pojo) {
         if (pojo.isDisabled()) {
-            // Give penalty for disabled items
             pojo.relevance -= 200;
         } else {
-            // Boost if item was previously selected for this query
             Integer value = knownIds.get(pojo.id);
             if (value != null) {
                 pojo.relevance += 25 * value;
             }
         }
-
-        return this.processedPojos.add(pojo);
-    }
-
-    @Override
-    public boolean addResults(List<? extends Pojo> pojos) {
-        if (isCancelled())
-            return false;
-
-        boolean added = false;
-        for (Pojo pojo : pojos) {
-            added |= addResult(pojo);
-        }
-        return added;
-    }
-
-    @Override
-    protected void onPostExecute(Void param) {
-        if (isCancelled()) {
-            return;
-        }
-
-        // Collect the results
-        List<Pojo> results = new ArrayList<>();
-        while (!processedPojos.isEmpty()) {
-            results.add(processedPojos.poll());
-        }
-
-        // Pass the results to the callback
-        if (callback != null) {
-            callback.onSearchResults(results);
-        }
-    }
-
-    @Override
-    protected void displayActivityLoader() {
-        // No UI to update, so override and leave empty
-    }
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-        // No UI to update, so you can leave this empty or handle as needed
     }
 }

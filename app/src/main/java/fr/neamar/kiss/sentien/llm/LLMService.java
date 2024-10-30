@@ -103,177 +103,33 @@ public class LLMService {
      */
     public void performTask(String prompt, LLMCallback callback) {
         executorService.submit(() -> {
-            // Make API call
-            String userPrompt = "{\"user_request\": \"" + prompt + "\"}";
-            new LLMTask(userPrompt, callback, llmActions);
-            // makeApiCall(", null); if (response != null) {
-            ////                // Update conversation history
-            ////                // updateConversationHistory(prompt, response);
-            ////                // Return result to UI thread
-            ////                new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(response));
-            ////            } else {
-            ////                // Return error to UI thread
-            ////                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Error performing LLM task"));
-            ////            }
+
+                    String userPrompt = "{\"user_request\": \"" + prompt + "\"}";
+                    new LLMTask(this.context, userPrompt, callback, llmActions);
+
+// this is a test
+//            try {
+//                JSONObject userPrompt = new JSONObject();
+//                userPrompt.put("capabilityQuery", prompt);
+//                userPrompt.put("capabilityType", "CONTACTS");
+//                this.llmActions.processAction(this.context, "GET_CAPABILITY", userPrompt);
+//            } catch (JSONException e) {
+//                throw new RuntimeException(e);
+                }
+
+
+                // makeApiCall(", null); if (response != null) {
+                ////                // Update conversation history
+                ////                // updateConversationHistory(prompt, response);
+                ////                // Return result to UI thread
+                ////                new Handler(Looper.getMainLooper()).post(() -> callback.onSuccess(response));
+                ////            } else {
+                ////                // Return error to UI thread
+                ////                new Handler(Looper.getMainLooper()).post(() -> callback.onError("Error performing LLM task"));
+                ////            }
 //
-        });
+        );
     }
-//
-//    private String getNotes() {
-//        StringBuilder notes = new StringBuilder();
-//        List<NotePojo> noteList = KissApplication.getApplication(context).getDataHandler().getAllNotes();
-//        assert noteList != null;
-//        for (NotePojo note : noteList) {
-//            notes.append(note.getContent()).append("\n");
-//        }
-//        return notes.toString();
-//    }
-//
-//    private String getContacts() {
-//        StringBuilder contacts = new StringBuilder();
-//        List<ContactsPojo> contactList = KissApplication.getApplication(context).getDataHandler().getContacts();
-//        assert contactList != null;
-//        for (ContactsPojo contact : contactList) {
-//            contacts.append(contact.getName() + " - " + contact.phone + "\n");
-//        }
-//        return contacts.toString();
-//    }
-//
-//    private String getAvailableShortcuts() {
-//        StringBuilder availableShortcuts = new StringBuilder();
-//        List<ShortcutPojo> shortcutList = KissApplication.getApplication(context).getDataHandler().getShortcuts();
-//        assert shortcutList != null;
-//        for (ShortcutPojo shortcut : shortcutList) {
-//            availableShortcuts.append(shortcut.getName()).append("\n");
-//        }
-//        return availableShortcuts.toString();
-//    }
-//
-//    private String getInstalledApps() {
-//        StringBuilder installedApps = new StringBuilder();
-//        List<AppPojo> appList = KissApplication.getApplication(context).getDataHandler().getApplications();
-//        assert appList != null;
-//        for (AppPojo app : appList) {
-//            installedApps.append(app.getName()).append("\n");
-//        }
-//        return installedApps.toString();
-//    }
-//
-//    private List<String> parseCapabilities(String capabilitiesJson) {
-//        try {
-//            JSONObject capabilities = new JSONObject(capabilitiesJson);
-//            JSONArray capabilitiesArray = capabilities.getJSONArray("capabilities");
-//            String subject = capabilities.getString("subject");
-//            Log.d(TAG, "Subject: " + subject);
-//            List<String> capabilitiesList = new ArrayList<>();
-//            for (int i = 0; i < capabilitiesArray.length(); i++) {
-//                capabilitiesList.add(capabilitiesArray.getString(i));
-//            }
-//            return capabilitiesList;
-//        } catch (JSONException e) {
-//            Log.e(TAG, "Error parsing capabilities and subject", e);
-//            return null;
-//        }
-//    }
-
-
-//    private String processOutput(JSONObject jsonResponseContent, JSONArray messages) {
-//        try {
-//            String mainGoal = jsonResponseContent.getString("main_goal");
-//            // JSONArray constraints = jsonResponseContent.getJSONArray("constraints");
-//            JSONArray previousActions = jsonResponseContent.getJSONArray("previous_actions");
-//            JSONArray nextActions = jsonResponseContent.getJSONArray("next_actions");
-//
-//            boolean executionEnded = false;
-//
-//            while (!executionEnded) {
-//                JSONArray newPreviousActions = new JSONArray();
-//
-//                for (int i = 0; i < nextActions.length(); i++) {
-//                    JSONObject action = nextActions.getJSONObject(i);
-//                    String actionName = action.getString("action_name");
-//                    JSONObject params = action.getJSONObject("params");
-//
-//                    // Process the action and get the result
-//                    String result = llmActions.processAction(actionName, params);
-//
-//                    // Add the action to previous_actions with the result
-//                    JSONObject actionWithResult = new JSONObject();
-//                    actionWithResult.put("action_name", actionName);
-//                    actionWithResult.put("params", params);
-//                    actionWithResult.put("result", result);
-//                    newPreviousActions.put(actionWithResult);
-//
-//                    if (actionName.equals("EXECUTION_REEVALUATE")) {
-//                        JSONObject newUserMessage = new JSONObject();
-//                        previousActions = mergePreviousActions(previousActions, newPreviousActions);
-//                        String newUserPrompt = "{\"main_goal\":\"" + mainGoal + "\",  \"previous_actions\":" + previousActions.toString() + "}";
-//                        // Make a new API call with updated previous_actions
-//                        String response = makeApiCall(newUserPrompt, messages);
-//
-//                        // Parse the new response
-//                        if (response != null) {
-//                            jsonResponseContent = new JSONObject(response);
-//                            nextActions = jsonResponseContent.getJSONArray("next_actions");
-//                            // Reset newPreviousActions for the next iteration
-//                            newPreviousActions = new JSONArray();
-//                            // Break the for-loop to start processing the new nextActions
-//                            break;
-//                        } else {
-//                            throw new RuntimeException("Error during API call in EXECUTION_REEVALUATE");
-//                        }
-//                    } else if (actionName.equals("EXECUTION_END")) {
-//                        executionEnded = true;
-//                        // Optionally, handle any finalization here
-//                        return result; // or return any final output you need
-//                    } else {
-//                        // Continue processing other actions
-//                    }
-//                }
-//
-//                // After processing all actions without EXECUTION_REEVALUATE or EXECUTION_END
-//                if (!executionEnded) {
-//                    // Merge newPreviousActions into previousActions
-//                    previousActions = mergePreviousActions(previousActions, newPreviousActions);
-//                    jsonResponseContent.put("previous_actions", previousActions);
-//                    // Since there are no more actions, we can end the execution
-//                    executionEnded = true;
-//                }
-//            }
-//
-//            // Return final result or any required output
-//            return "Execution completed";
-//
-//        } catch (JSONException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-
-//    private JSONArray getLongTermMemory() {
-//        String historyJson = sharedPreferences.getString("long_term_memory", "[]");
-//        try {
-//            return new JSONArray(historyJson);
-//        } catch (JSONException e) {
-//            Log.e(TAG, "Failed to parse conversation history", e);
-//        }
-//        return new JSONArray();
-//    }
-//
-//    private void updateLongTermMemory(String key, String value, String[] tags) {
-//        JSONArray conversationHistory = getLongTermMemory();
-//
-//        try {
-//
-//
-//            // Save updated conversation history
-//            sharedPreferences.edit()
-//                    .putString("long_term_memory", conversationHistory.toString())
-//                    .apply();
-//        } catch (JSONException e) {
-//            Log.e(TAG, "Failed to update conversation history", e);
-//        }
-//    }
 
     // Helper method to merge previous actions
     private JSONArray mergePreviousActions(JSONArray previousActions, JSONArray newPreviousActions) throws JSONException {
@@ -298,4 +154,40 @@ public class LLMService {
 
         void onUpdate(String result);
     }
+
+    public interface ActionResult {
+        boolean isSuccess();
+
+        String getUserMessage();
+
+        String getActionResultValues();
+    }
+
+    public static class ActionResultImpl implements ActionResult {
+        private final boolean success;
+        private final String userMessage;
+        private final String actionResultValues;
+
+        public ActionResultImpl(boolean success, String userMessage, String actionResultValues) {
+            this.success = success;
+            this.userMessage = userMessage;
+            this.actionResultValues = actionResultValues;
+        }
+
+        @Override
+        public boolean isSuccess() {
+            return success;
+        }
+
+        @Override
+        public String getUserMessage() {
+            return userMessage;
+        }
+
+        @Override
+        public String getActionResultValues() {
+            return actionResultValues;
+        }
+    }
+
 }
