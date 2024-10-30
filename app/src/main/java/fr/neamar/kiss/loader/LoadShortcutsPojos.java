@@ -1,10 +1,13 @@
-
 package fr.neamar.kiss.loader;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ShortcutInfo;
+import android.content.pm.ShortcutManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.UserManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +24,7 @@ import fr.neamar.kiss.utils.ShortcutUtil;
 import fr.neamar.kiss.utils.UserHandle;
 
 public class LoadShortcutsPojos extends LoadPojos<ShortcutPojo> {
+    private static final String TAG = "\uD83D\uDCB0 LoadShortcutsPojos";
 
     public LoadShortcutsPojos(Context context) {
         super(context, ShortcutPojo.SCHEME);
@@ -41,6 +45,21 @@ public class LoadShortcutsPojos extends LoadPojos<ShortcutPojo> {
 
         List<ShortcutPojo> pojos = new ArrayList<>();
 
+        // test
+//        ShortcutManager shortcutManager = context.getSystemService(ShortcutManager.class);
+//        List<ShortcutInfo> shortcuts = shortcutManager.getDynamicShortcuts();
+//        for (ShortcutInfo shortcutInfo : shortcuts) {
+//            Intent intent = shortcutInfo.getIntent();
+//            if (intent != null && intent.getExtras() != null) {
+//                Bundle extras = intent.getExtras();
+//                for (String key : extras.keySet()) {
+//                    Object value = extras.get(key);
+//                    Log.d(TAG, " " + intent.getComponent() + "Extra: " + key + " = " + value);
+//                }
+//            }
+//        }
+
+
         for (ShortcutRecord shortcutRecord : records) {
             ShortcutPojo pojo = createPojo(shortcutRecord, tagsHandler, null, true, false, false);
             if (!pojo.isOreoShortcut()) {
@@ -50,20 +69,19 @@ public class LoadShortcutsPojos extends LoadPojos<ShortcutPojo> {
         }
 
         // get all oreo shortcuts from system directly
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
-            List<ShortcutInfo> shortcutInfos = ShortcutUtil.getAllShortcuts(context);
-            for (ShortcutInfo shortcutInfo : shortcutInfos) {
-                if (isCancelled()) {
-                    break;
-                }
-                if (ShortcutUtil.isShortcutVisible(context, shortcutInfo, excludedApps, excludedShortcutApps)) {
-                    ShortcutRecord shortcutRecord = ShortcutUtil.createShortcutRecord(context, shortcutInfo, !shortcutInfo.isPinned());
-                    if (shortcutRecord != null) {
-                        boolean disabled = PackageManagerUtils.isAppSuspended(context, shortcutInfo.getPackage(), new UserHandle(context, shortcutInfo.getUserHandle())) || userManager.isQuietModeEnabled(shortcutInfo.getUserHandle());
-                        ShortcutPojo pojo = createPojo(shortcutRecord, tagsHandler, ShortcutUtil.getComponentName(context, shortcutInfo), shortcutInfo.isPinned(), shortcutInfo.isDynamic(), disabled);
-                        pojos.add(pojo);
-                    }
+        UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        List<ShortcutInfo> shortcutInfos = ShortcutUtil.getAllShortcuts(context);
+        for (ShortcutInfo shortcutInfo : shortcutInfos) {
+            if (isCancelled()) {
+                break;
+            }
+
+            if (ShortcutUtil.isShortcutVisible(context, shortcutInfo, excludedApps, excludedShortcutApps)) {
+                ShortcutRecord shortcutRecord = ShortcutUtil.createShortcutRecord(context, shortcutInfo, !shortcutInfo.isPinned());
+                if (shortcutRecord != null) {
+                    boolean disabled = PackageManagerUtils.isAppSuspended(context, shortcutInfo.getPackage(), new UserHandle(context, shortcutInfo.getUserHandle())) || userManager.isQuietModeEnabled(shortcutInfo.getUserHandle());
+                    ShortcutPojo pojo = createPojo(shortcutRecord, tagsHandler, ShortcutUtil.getComponentName(context, shortcutInfo), shortcutInfo.isPinned(), shortcutInfo.isDynamic(), disabled);
+                    pojos.add(pojo);
                 }
             }
         }

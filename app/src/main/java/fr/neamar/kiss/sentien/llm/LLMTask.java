@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Looper;
 
 import android.os.Handler;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -69,6 +70,7 @@ public class LLMTask {
                 String assistantReply = message.getString("content");
                 JSONObject jsonResponseContent = new JSONObject(assistantReply);
                 this.nextActions = jsonResponseContent.getJSONArray("next_actions");
+                Log.d(TAG, "LLMTask: nextActions: " + this.nextActions.toString());
                 this.previousActions = jsonResponseContent.getJSONArray("previous_actions");
                 this.mainGoal = jsonResponseContent.getString("main_goal");
                 return true;

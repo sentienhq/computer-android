@@ -2,19 +2,18 @@ package fr.neamar.kiss.pojo;
 
 import android.os.Build;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.neamar.kiss.utils.UserHandle;
 
 public final class AppPojo extends PojoWithTags {
 
-    public static String getComponentName(String packageName, String activityName,
-                                          UserHandle userHandle) {
-        return userHandle.addUserSuffixToString(packageName + "/" + activityName, '#');
-    }
-
     public final String packageName;
     public final String activityName;
     public final UserHandle userHandle;
-
+    private final boolean disabled;
+    private List<String> foundShortcuts;
     private boolean excluded;
     private boolean excludedFromHistory;
     /**
@@ -22,7 +21,6 @@ public final class AppPojo extends PojoWithTags {
      */
     private boolean excludedShortcuts;
     private long customIconId = 0;
-    private final boolean disabled;
 
     public AppPojo(String id, String packageName, String activityName, UserHandle userHandle,
                    boolean isExcluded, boolean isExcludedFromHistory, boolean isExcludedShortcuts, boolean disabled) {
@@ -31,11 +29,16 @@ public final class AppPojo extends PojoWithTags {
         this.packageName = packageName;
         this.activityName = activityName;
         this.userHandle = userHandle;
-
+        this.foundShortcuts = new ArrayList<>();
         this.excluded = isExcluded;
         this.excludedFromHistory = isExcludedFromHistory;
         this.excludedShortcuts = isExcludedShortcuts;
         this.disabled = disabled;
+    }
+
+    public static String getComponentName(String packageName, String activityName,
+                                          UserHandle userHandle) {
+        return userHandle.addUserSuffixToString(packageName + "/" + activityName, '#');
     }
 
     public String getComponentName() {
@@ -66,12 +69,12 @@ public final class AppPojo extends PojoWithTags {
         this.excludedShortcuts = excludedShortcuts;
     }
 
-    public void setCustomIconId(long iconId) {
-        customIconId = iconId;
-    }
-
     public long getCustomIconId() {
         return customIconId;
+    }
+
+    public void setCustomIconId(long iconId) {
+        customIconId = iconId;
     }
 
     public String getPackageKey() {
@@ -80,6 +83,14 @@ public final class AppPojo extends PojoWithTags {
         } else {
             return packageName;
         }
+    }
+
+    public List<String> getShortcuts() {
+        return foundShortcuts;
+    }
+
+    public void setShortcuts(List<String> shortcuts) {
+        this.foundShortcuts = shortcuts;
     }
 
     @Override

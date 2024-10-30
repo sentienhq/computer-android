@@ -1,7 +1,15 @@
 package fr.neamar.kiss.sentien.llm;
 
+import android.app.SearchManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.LauncherApps;
+import android.graphics.Rect;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.UserHandle;
+import android.os.UserManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -111,19 +119,19 @@ public class LLMActions {
 
         // WORKING MEMORY
         // working memory is a temporary storage for data that is not saved to the next prompt
-        ACTIONS.add(new LLMAction("WORKING_MEMORY_CLEAR", "Clear AI working memory.", LLMActionType.STATIC, new String[]{}, noneCap));
+        ACTIONS.add(new LLMAction("WORKING_MEMORY_CLEAR", "Clear AI working memory.", LLMActionType.DISABLED, new String[]{}, noneCap));
         ACTIONS.add(new LLMAction("WORKING_MEMORY_SAVE", "Save data to working memory for future AI processing.", LLMActionType.STATIC, new String[]{"data"}, noneCap));
 
         // CONTACTS
         LLMDataAccessCapability[] contactsCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.CONTACTS};
-        ACTIONS.add(new LLMAction("CONTACTS_FIND", "Find a contact.", LLMActionType.STATIC, new String[]{"contact_query"}, noneCap));
-        ACTIONS.add(new LLMAction("CONTACTS_CREATE", "Add a new contact.", LLMActionType.STATIC, new String[]{"contact_name", "contact_phone", "contact_nickname", "contact_email"}, noneCap));
+        ACTIONS.add(new LLMAction("CONTACTS_FIND", "Find a contact.", LLMActionType.DISABLED, new String[]{"contact_query"}, noneCap));
+        ACTIONS.add(new LLMAction("CONTACTS_CREATE", "Add a new contact.", LLMActionType.DISABLED, new String[]{"contact_name", "contact_phone", "contact_nickname", "contact_email"}, noneCap));
         ACTIONS.add(new LLMAction("CONTACTS_DELETE", "Delete a contact.", LLMActionType.DISABLED, new String[]{"contact_id", "contact_name", "contact_phone"}, contactsCap));
         ACTIONS.add(new LLMAction("CONTACTS_EDIT", "Edit a contact.", LLMActionType.DISABLED, new String[]{"original_contact_name", "original_contact_phone", "new_contact_name", "new_contact_phone", "new_contact_nickname", "new_contact_email"}, contactsCap));
 
         // EVENTS
         LLMDataAccessCapability[] appShortcutContactsCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.CONTACTS, LLMDataAccessCapability.APPS, LLMDataAccessCapability.SHORTCUTS};
-        ACTIONS.add(new LLMAction("EVENTS_CREATE", "Create a new event in calendar or user defined app.", LLMActionType.STATIC, new String[]{"app_shortcut_id", "event_name", "event_location", "event_description", "event_start_time", "event_end_time", "all_day", "extra_emails"}, appShortcutContactsCap));
+        ACTIONS.add(new LLMAction("EVENTS_CREATE", "Create a new event in calendar or user defined app.", LLMActionType.DISABLED, new String[]{"app_shortcut_id", "event_name", "event_location", "event_description", "event_start_time", "event_end_time", "all_day", "extra_emails"}, appShortcutContactsCap));
         ACTIONS.add(new LLMAction("EVENTS_NEW_TASK", "Create a new task in calendar or user defined app.", LLMActionType.DISABLED, new String[]{"app_shortcut_id", "task_name", "task_location", "task_description", "task_start_time", "task_end_time"}, appShortcutContactsCap));
 
         // CLOCK
@@ -134,7 +142,7 @@ public class LLMActions {
 
         // NAVIGATION
         LLMDataAccessCapability[] appShortcutCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.SHORTCUTS, LLMDataAccessCapability.APPS};
-        ACTIONS.add(new LLMAction("NAVIGATION_TO", "Navigate to a location string address.", LLMActionType.DYNAMIC, new String[]{"app_or_shortcut_id", "location_name"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("NAVIGATION_TO", "Opens default navigation app and navigate to a location string address.", LLMActionType.STATIC, new String[]{"location_name"}, appShortcutCap));
         ACTIONS.add(new LLMAction("NAVIGATION_GET_MY_LOCATION", "Get my current location lat and long.", LLMActionType.DISABLED, new String[]{"app_or_shortcut_id"}, appShortcutCap));
         ACTIONS.add(new LLMAction("NAVIGATION_GET_MY_ADDRESS", "Get my current address.", LLMActionType.DISABLED, new String[]{"app_or_shortcut_id"}, appShortcutCap));
         // find nearby places
@@ -161,8 +169,8 @@ public class LLMActions {
 
         // WEB
         // TODO - test this to make sure it works
-        ACTIONS.add(new LLMAction("WEB_SEARCH_OPEN_UI", "Open web search.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
-        ACTIONS.add(new LLMAction("WEB_OPEN_URL", "Open a URL.", LLMActionType.STATIC, new String[]{"url"}, noneCap));
+        ACTIONS.add(new LLMAction("WEB_SEARCH_OPEN_UI", "Open web search UI. LLM is not able to read the UI, so it is only for the user to interact with.", LLMActionType.STATIC, new String[]{"search_query"}, noneCap));
+        ACTIONS.add(new LLMAction("WEB_OPEN_URL", "Open a URL.", LLMActionType.DISABLED, new String[]{"url"}, noneCap));
         ACTIONS.add(new LLMAction("WEB_SEARCH_TOP_RESULTS", "Search for a query on the web and return top results.", LLMActionType.DISABLED, new String[]{"search_query"}, noneCap));
         ACTIONS.add(new LLMAction("WEB_SEARCH_WIKI_INFO", "Search for a query on the web and return wiki info.", LLMActionType.DISABLED, new String[]{"search_query"}, noneCap));
         ACTIONS.add(new LLMAction("WEB_GET_URL_CONTENT", "Get the content of a URL.", LLMActionType.DISABLED, new String[]{"url"}, noneCap));
@@ -221,10 +229,10 @@ public class LLMActions {
 
         // APPS & SHORTCUTS
         LLMDataAccessCapability[] appCap = new LLMDataAccessCapability[]{LLMDataAccessCapability.APPS};
-        ACTIONS.add(new LLMAction("APP_OPEN", "Open an app.", LLMActionType.STATIC, new String[]{"app_id"}, appCap));
-        ACTIONS.add(new LLMAction("APP_CLOSE", "Close an app.", LLMActionType.DISABLED, new String[]{"app_id"}, appCap));
-        ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP", "Launch a shortcut or app.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
-        ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP_WITH_PARAMS", "Launch a shortcut or app with extra intent input parameters - use String separated by comma.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "extra_input_values"}, appShortcutCap));
+        ACTIONS.add(new LLMAction("APP_OPEN", "Open an app. Provide package and activity name", LLMActionType.STATIC, new String[]{"app_package_name", "app_activity_name"}, appCap));
+        ACTIONS.add(new LLMAction("APP_CLOSE", "Close an app.", LLMActionType.DISABLED, new String[]{"app_package_name", "app_activity_name"}, appCap));
+        ACTIONS.add(new LLMAction("SHORTCUT_OPEN", "Launching shortcut is like opening App with extra input parameter.", LLMActionType.STATIC, new String[]{"shortcut_package_name", "shortcut_id", "extra_input_value"}, appShortcutCap));
+//        ACTIONS.add(new LLMAction("APP_LAUNCH_SHORTCUT_OR_APP_WITH_PARAMS", "Launch a shortcut or app with extra intent input parameters - use String separated by comma.", LLMActionType.DISABLED, new String[]{"app_or_shortcut_id", "extra_input_values"}, appShortcutCap));
         // add accessibility actions to control apps or shortcuts
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_FORWARD", "Scroll forward in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
 //        ACTIONS.add(new LLMAction("APP_ACCESSIBILITY_SCROLL_BACKWARD", "Scroll backward in an app or shortcut.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id"}, appShortcutCap));
@@ -283,6 +291,7 @@ public class LLMActions {
     }
 
     public LLMService.ActionResultImpl processAction(Context context, String actionName, JSONObject actionParams) {
+        Context appContext = context.getApplicationContext();
         try {
             Log.d(TAG, "processAction: " + actionName + " params: " + actionParams.toString());
             switch (actionName) {
@@ -300,21 +309,43 @@ public class LLMActions {
                     Log.d(TAG, "GET_CAPABILITY result: " + resultString);
                     return new LLMService.ActionResultImpl(true, "LLM obtained new " + capabilityType + " capabilities", resultString);
                 }
+                case "NAVIGATION_TO": {
+                    String extraIntentInput = actionParams.getString("location_name");
+                    Intent intentNavigate = new Intent(Intent.ACTION_VIEW);
+                    intentNavigate.setData(Uri.parse("geo:0,0?q=" + extraIntentInput));
+                    intentNavigate.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    appContext.startActivity(intentNavigate);
+                    return new LLMService.ActionResultImpl(true, "Navigating to" + extraIntentInput, "Navigated to location " + extraIntentInput);
+                }
+                case "WEB_SEARCH_OPEN_UI": {
+                    String searchQuery = actionParams.getString("search_query");
+                    Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                    intent.putExtra(SearchManager.QUERY, searchQuery);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    appContext.startActivity(intent);
+                    return new LLMService.ActionResultImpl(true, "Opened web search UI", "Opened web search UI");
+                }
+                case "SHORTCUT_OPEN": {
+                    String shortcutPackageName = actionParams.getString("shortcut_package_name");
+                    String shortcutId = actionParams.getString("shortcut_id");
+                    String extraInputValue = actionParams.getString("extra_input_value");
+                    Intent shortcutIntent = new Intent(Intent.ACTION_VIEW);
+                    shortcutIntent.setPackage("shortcut://" + shortcutPackageName + "/" + shortcutId);
+                    shortcutIntent.setData(Uri.parse(extraInputValue));
+                    shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    appContext.startActivity(shortcutIntent);
+                    return new LLMService.ActionResultImpl(true, "Shortcut opened", "Shortcut opened");
+                }
                 case "APP_OPEN": {
-                    String intentPackage = actionParams.getString("app_id");
-                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setPackage(intentPackage);
-                    if (actionParams.has("extra_input_values")) {
-                        String extraInputValues = actionParams.getString("extra_input_values");
-                        String[] extraInputValuesArray = extraInputValues.split(",");
-                        for (String extraInputValue : extraInputValuesArray) {
-                            String[] extraInputValueArray = extraInputValue.split("=");
-                            if (extraInputValueArray.length == 2) {
-                                intent.putExtra(extraInputValueArray[0], extraInputValueArray[1]);
-                            }
-                        }
-                    }
-                    context.startActivity(intent);
+                    String intentPackageName = actionParams.getString("app_package_name");
+                    String intentActivityName = actionParams.getString("app_activity_name");
+                    LauncherApps launcher = (LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE);
+                    assert launcher != null;
+                    Rect sourceBounds = null;
+                    Bundle opts = null;
+                    ComponentName className = new ComponentName(intentPackageName, intentActivityName);
+                    UserHandle userHandle = android.os.Process.myUserHandle();
+                    launcher.startMainActivity(className, userHandle, sourceBounds, opts);
                     return new LLMService.ActionResultImpl(true, "App opened", "App opened");
                 }
                 default:
@@ -348,7 +379,7 @@ class LLMPrompt {
     }
 
     public static String buildPreSystemPrompt(String actionList) {
-        return "Your primary task is to interpret the user's requests and generate responses in a specific JSON format that the application can parse and execute.You are an autonomous AI assistant genius designed to accomplish tasks based on user instructions.\n" +
+        return "Your primary task is to interpret the user's requests and generate responses in a specific JSON format that the application can parse and execute.You are an autonomous AI genius designed to accomplish tasks based on user instructions.\n" +
                 "Your workflow involves the following components:" +
                 "1. Main goal: The primary objective derived from the user's request. Clearly define what the user wants to achieve.\n" +
                 "2. Constraints: Limitations or guidelines you must follow while achieving the main goal. Examples include resource limits, required capabilities, ethical guidelines, or specific user information." +
@@ -369,6 +400,7 @@ class LLMPrompt {
                 "Action Selection: Choose only actions from the available action list." +
                 "Action Execution: Execute actions in the order specified." +
                 "Execution Updates: Use EXECUTION_REEVALUATE when you need to re-evaluate your next actions based on new information - for example after use of GET_CAPABILITY to update next_actions.                                                                                                        Termination: Use the EXECUTION_END action when no further actions are needed.                                         No Extra Text: Do not include any text outside the JSON object." +
+                "Be Smart: Observe the user's request and generate a response that is relevant and appropriate. Check shortcuts alternatives in capabilities to use if applicable." +
                 "Well-Formed JSON: Ensure the JSON is well-formed and parsable.\n" +
                 "Available Actions:\n" +
                 actionList +

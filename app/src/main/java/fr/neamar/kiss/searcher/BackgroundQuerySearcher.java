@@ -100,9 +100,24 @@ public class BackgroundQuerySearcher {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("id", pojo.id);
                 switch (this.capabilityType) {
-                    case "APPS":
+                    case "APPS": {
                         jsonObject.put("appName", ((AppPojo) pojo).getName());
+                        jsonObject.put("appPackageName", ((AppPojo) pojo).packageName);
+                        jsonObject.put("appActivityName", ((AppPojo) pojo).activityName);
+                        List<Pojo> adjustedShortcuts = new BackgroundQuerySearcher(this.context, "SHORTCUTS", pojo.getName() + ": ").search();
+                        if (adjustedShortcuts.size() > 0) {
+                            JSONArray shortcutArray = new JSONArray();
+                            for (Pojo shortcut : adjustedShortcuts) {
+                                JSONObject shortcutJson = new JSONObject();
+                                shortcutJson.put("shortcutPackageName", ((ShortcutPojo) shortcut).packageName);
+                                shortcutJson.put("shortcutId", ((ShortcutPojo) shortcut).intentUri);
+                                shortcutJson.put("shortcutName", ((ShortcutPojo) shortcut).getName());
+                                shortcutArray.put(shortcutJson);
+                            }
+                            jsonObject.put("appsShortcutsAlternativesToUse", shortcutArray);
+                        }
                         break;
+                    }
                     case "CONTACTS":
                         jsonObject.put("contactName", ((ContactsPojo) pojo).getName());
                         jsonObject.put("contactNickname", ((ContactsPojo) pojo).normalizedNickname);
@@ -114,17 +129,17 @@ public class BackgroundQuerySearcher {
                             for (Pojo shortcut : adjustedShortcuts) {
                                 JSONObject shortcutJson = new JSONObject();
                                 shortcutJson.put("shortcutPackageName", ((ShortcutPojo) shortcut).packageName);
+                                shortcutJson.put("shortcutId", ((ShortcutPojo) shortcut).intentUri);
                                 shortcutJson.put("shortcutName", ((ShortcutPojo) shortcut).getName());
-                                shortcutJson.put("shortcutIntentUri", ((ShortcutPojo) shortcut).intentUri);
                                 shortcutArray.put(shortcutJson);
                             }
-                            jsonObject.put("contactAdjustedShortcuts", shortcutArray);
+                            jsonObject.put("contactShortcutsAlternativesToUse", shortcutArray);
                         }
                         break;
                     case "SHORTCUTS":
                         jsonObject.put("shortcutPackageName", ((ShortcutPojo) pojo).packageName);
                         jsonObject.put("shortcutName", ((ShortcutPojo) pojo).getName());
-                        jsonObject.put("shortcutIntentUri", ((ShortcutPojo) pojo).intentUri);
+                        jsonObject.put("shortcutId", ((ShortcutPojo) pojo).intentUri);
                         break;
                     case "NOTES":
                         jsonObject.put("noteType", ((NotePojo) pojo).type.toString());
