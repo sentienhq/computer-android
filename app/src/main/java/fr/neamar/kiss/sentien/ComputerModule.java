@@ -1,9 +1,11 @@
 package fr.neamar.kiss.sentien;
 
+import android.app.Activity;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.webkit.JavascriptInterface;
 
 import fr.neamar.kiss.DataHandler;
 import fr.neamar.kiss.sentien.llm.LLMService;
@@ -60,16 +62,20 @@ public class ComputerModule {
     public String getAccountResourceURL() {
         if (accountService != null) {
             String accountStatus = accountService.getAccountStatus();
+            String accountId = accountService.getUserId();
+            Log.i(TAG, "Account status: " + accountStatus + ", account id: " + accountId);
             switch (accountStatus) {
                 case "not_created":
-                    return AccountAPI.URL + "/account/welcome";
+                    return AccountAPI.URL + "/account/welcome?account_id=" + accountId;
+                case "awaiting_verification":
+                    return AccountAPI.URL + "/account/verification?account_id=" + accountId;
                 case "awaiting_to_join":
-                    return AccountAPI.URL + "/account/joining";
+                    return AccountAPI.URL + "/account/joining?account_id=" + accountId;
                 case "active":
-                    return AccountAPI.URL + "/account/dashboard/" + accountService.getUserId();
+                    return AccountAPI.URL + "/account/dashboard?account_id=" + accountId;
             }
         }
-        return "";
+        return null;
     }
 
     public void askAI(String prompt, LLMService.LLMCallback callback) {

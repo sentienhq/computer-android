@@ -27,8 +27,8 @@ public class AccountService {
     private static final String TAG = "\uD83C\uDFC4 AccountService";
     private static final String PREFS_NAME = "ComputerModule:Prefs";
     private static final String ACCOUNT_CREATED_PREF = "account_created";
-    private static final String DEVICE_ALIAS_PREF = "device_alias";
     private static final String USER_ALIAS_PREF = "user_alias";
+    private static final String DEVICE_ALIAS_PREF = "device_alias";
     private final Context context;
     //    private MinioClient minioClient;
     private ConnectivityManager connectivityManager;
@@ -36,11 +36,16 @@ public class AccountService {
     private CryptoService cryptoService;
     private DataService dataService;
     private boolean connected = false;
-    private boolean accountCreated;
-    private String deviceAlias;
-    private String userAlias;
+    private boolean accountCreated = false;
+
+    // user credentials
     private String userId;
+    private String userAlias;
+
+    // device credentials
     private String deviceId;
+    private String deviceAlias;
+    
     private String jwtToken;
     private String accountStatus = "not_created"; // not_created, awaiting_to_join, active
 

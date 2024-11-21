@@ -3,7 +3,7 @@
     <item
         android:id="@+id/computer_module"
         android:showAsAction="never"
-        android:title="@string/manu_computer_module" />
+        android:title="@string/menu_computer_module" />
     <item
         android:id="@+id/preferences"
         android:icon="@drawable/ic_launcher"

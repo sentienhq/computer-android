@@ -149,6 +149,25 @@ public class BackgroundQuerySearcher {
                 jsonObject.put("relevance", pojo.relevance);
                 capabilityResults.put(jsonObject); // Add each JSON object to the array
             }
+            if (results.isEmpty()) {
+                switch (this.capabilityType) {
+                    case "CONTACTS":
+                        List<Pojo> atLeastShortcuts = new BackgroundQuerySearcher(this.context, "SHORTCUTS", ": " + queryString).search();
+                        if (atLeastShortcuts.size() > 0) {
+                            JSONArray shortcutArray = new JSONArray();
+                            for (Pojo pojo : atLeastShortcuts) {
+                                JSONObject shortcutJson = new JSONObject();
+                                shortcutJson.put("shortcutPackageName", ((ShortcutPojo) pojo).packageName);
+                                shortcutJson.put("shortcutId", ((ShortcutPojo) pojo).intentUri);
+                                shortcutJson.put("shortcutName", ((ShortcutPojo) pojo).getName());
+                                shortcutArray.put(shortcutJson);
+                            }
+                            mainJsonObject.put("capabilityResults", shortcutArray);
+                            return mainJsonObject.toString();
+                        }
+                        break;
+                }
+            }
 
             // Put the array into the main JSON object
             mainJsonObject.put("capabilityResults", capabilityResults);

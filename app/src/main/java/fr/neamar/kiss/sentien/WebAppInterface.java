@@ -1,5 +1,8 @@
 package fr.neamar.kiss.sentien;
 
+import android.util.Log;
+import android.webkit.JavascriptInterface;
+
 import fr.neamar.kiss.MainActivity;
 
 
@@ -11,5 +14,15 @@ public class WebAppInterface {
     public WebAppInterface(MainActivity mainActivity, ComputerModule computerModule) {
         mainActivityRef = mainActivity;
         computerModuleRef = computerModule;
+
+
+    }
+
+    @JavascriptInterface
+    public void closeApp() {
+        Log.i("PRESSED!", "CLOSE PRESSED");
+        mainActivityRef.runOnUiThread(() -> {
+            mainActivityRef.closeCMWindow(); // Ensure this runs on the main thread
+        });
     }
 }

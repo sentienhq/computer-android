@@ -21,7 +21,7 @@ import okhttp3.ResponseBody;
 
 public class AccountAPI {
     public static final MediaType JSON = MediaType.get("application/json");
-    public static final String URL = "http://10.0.0.33:8787";
+    public static final String URL = "http://10.1.0.12:8787";
     public static final String API_URL = URL + "/api";
     private static final String TAG = "\uD83C\uDF10 AccountAPI";
     private static OkHttpClient client = new OkHttpClient();

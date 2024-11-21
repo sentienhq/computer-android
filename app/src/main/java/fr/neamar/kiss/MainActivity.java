@@ -40,6 +40,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.AbsListView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
@@ -559,6 +560,14 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         searchEditText.requestFocus();
     }
 
+    public void searchOnlineOnClick(View view) {
+        String content = searchEditText.getText().toString();
+        if (content.isEmpty()) {
+            Toast.makeText(this, R.string.ui_empty_1, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+    }
 
     public void onAddNoteOnClick(View view) {
         String content = searchEditText.getText().toString();
@@ -626,11 +635,6 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         Log.d(TAG, "askAIOnClick");
     }
 
-    public void searchOnlineOnClick(View view) {
-        // TODO: implement this
-        Log.d(TAG, "searchOnlineOnClick");
-    }
-
     @Override
     public void onBackPressed() {
         if (mPopup != null) {
@@ -666,6 +670,12 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
         return super.onKeyDown(keycode, e);
     }
 
+    public void closeCMWindow() {
+        WebView myWebView = findViewById(R.id.webview);
+        myWebView.setVisibility(View.GONE);
+        showKeyboard();
+    }
+
     @SuppressLint({"SetJavaScriptEnabled", "JavascriptInterface"})
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -681,7 +691,7 @@ public class MainActivity extends Activity implements QueryInterface, KeyboardSc
                 if (!resourceURL.isEmpty()) {
                     // hide keyboard
                     hideKeyboard();
-
+                    //startActivity(new Intent(this, ComputerModuleActivity.class));
                     // show webview
                     WebView myWebView = findViewById(R.id.webview);
                     WebSettings webSettings = myWebView.getSettings();

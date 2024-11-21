@@ -10,7 +10,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -20,13 +23,17 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import fr.neamar.kiss.DataHandler;
 import fr.neamar.kiss.KissApplication;
+import fr.neamar.kiss.R;
 import fr.neamar.kiss.pojo.AppPojo;
 import fr.neamar.kiss.pojo.ContactsPojo;
 import fr.neamar.kiss.pojo.Pojo;
 import fr.neamar.kiss.searcher.BackgroundQuerySearcher;
+import fr.neamar.kiss.utils.Permission;
 
 enum LLMActionType {
     STATIC, // actions that can be performed by predefined intents
@@ -211,7 +218,7 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("SOUND_BEEP", "Make a beep sound.", LLMActionType.DISABLED, new String[]{}, noneCap));
 
         // VOICE IO
-        ACTIONS.add(new LLMAction("VOICE_SAY_USER", "Say something to user.", LLMActionType.STATIC, new String[]{"voice_message"}, noneCap));
+        ACTIONS.add(new LLMAction("VOICE_SAY_USER", "Say something to user.", LLMActionType.DISABLED, new String[]{"voice_message"}, noneCap));
         ACTIONS.add(new LLMAction("VOICE_SAY_DEVICE", "Say something to device or caller.", LLMActionType.DISABLED, new String[]{"voice_message"}, noneCap));
         ACTIONS.add(new LLMAction("VOICE_LISTEN", "Listen to caller.", LLMActionType.DISABLED, new String[]{}, noneCap));
         ACTIONS.add(new LLMAction("VOICE_LISTEN_FOR", "Listen to caller for a given amount of time.", LLMActionType.DISABLED, new String[]{"timeout_in_ms"}, noneCap));
@@ -222,8 +229,8 @@ public class LLMActions {
         ACTIONS.add(new LLMAction("USER_INPUT", "Get user input text, boolean or number.", LLMActionType.DISABLED, new String[]{"input_type"}, noneCap));
 
         // CALLING
-        ACTIONS.add(new LLMAction("PHONE_CALL", "Call a phone number.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone"}, appShortcutContactsCap));
-        ACTIONS.add(new LLMAction("PHONE_CALL_WITH_MESSAGE", "Call a phone number with a message.", LLMActionType.STATIC, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "message"}, appShortcutContactsCap));
+        ACTIONS.add(new LLMAction("PHONE_CALL", "Call a phone number.", LLMActionType.STATIC, new String[]{"contact_name", "contact_phone"}, contactsCap));
+        ACTIONS.add(new LLMAction("PHONE_CALL_WITH_MESSAGE", "Call a phone number with a message.", LLMActionType.DISABLED, new String[]{"app_or_shortcut_id", "contact_name", "contact_phone", "message"}, appShortcutContactsCap));
         ACTIONS.add(new LLMAction("PHONE_HANGUP", "Hang up a phone call.", LLMActionType.DISABLED, new String[]{}, noneCap));
         ACTIONS.add(new LLMAction("PHONE_PICK_UP", "Pick up a phone call.", LLMActionType.DISABLED, new String[]{}, noneCap));
 
@@ -348,6 +355,98 @@ public class LLMActions {
                     launcher.startMainActivity(className, userHandle, sourceBounds, opts);
                     return new LLMService.ActionResultImpl(true, "App opened", "App opened");
                 }
+                case "PHONE_CALL": {
+                    // String intentPackage = actionParams.getString("app_or_shortcut_id");
+                    String extraIntentInput = actionParams.getString("contact_phone");
+                    String callerName = actionParams.getString("contact_name");
+                    if (extraIntentInput.isEmpty()) {
+                        return new LLMService.ActionResultImpl(false, "Phone number not provided", "Phone number is null or empty");
+                    }
+                    // KissApplication.getApplication(context).getDataHandler().addToHistory("contact://" + extraIntentInput + "/" + extraIntentInput);
+                    // Find contact and get phone number
+                    Intent phoneIntent = new Intent(Intent.ACTION_CALL);
+                    phoneIntent.setData(Uri.parse("tel:" + extraIntentInput));
+                    phoneIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    if (!Permission.checkPermission(context, Permission.PERMISSION_CALL_PHONE)) {
+                        Permission.askPermission(Permission.PERMISSION_CALL_PHONE, new Permission.PermissionResultListener() {
+                            @Override
+                            public void onGranted() {
+                                // Great! Start the intent we stored for later use.
+                                context.startActivity(phoneIntent);
+                            }
+
+                            @Override
+                            public void onDenied() {
+                                Toast.makeText(context, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                    } else {
+                        context.startActivity(phoneIntent);
+                        return new LLMService.ActionResultImpl(true, "Calling: " + callerName + ": " + extraIntentInput, "Calling: " + callerName + ": " + extraIntentInput);
+                    }
+                }
+                case "UTILS_DELAY": {
+                    try {
+                        String delayMs = actionParams.getString("delay_in_ms");
+                        if (delayMs == null) {
+                            return new LLMService.ActionResultImpl(false, "No delay specified", "No delay specified");
+                        }
+                        Log.d(TAG, "Delaying for " + delayMs + " ms");
+                        Thread.sleep(Long.parseLong(delayMs));
+                        return new LLMService.ActionResultImpl(true, "Delay complete", "Delay complete");
+                    } catch (Exception e) {
+                        return new LLMService.ActionResultImpl(false, "Error in delay: " + e.getMessage(), "Error in delay: " + e.getMessage());
+                    }
+                }
+                // TODO: Add support for voice messages to user
+//                case "VOICE_SAY_USER": {
+//                    try {
+//                        String voiceMessage = actionParams.getString("voice_message");
+//                        if (!voiceMessage.isEmpty()) {
+//                            final TextToSpeech[] tts = new TextToSpeech[1];
+//                            tts[0] = new TextToSpeech(context, status -> {
+//                                if (status == TextToSpeech.SUCCESS) {
+//                                    int result = tts[0].setLanguage(Locale.getDefault());
+//                                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+//                                        Log.e(TAG, "Language not supported");
+//                                        tts[0].shutdown();
+//                                    } else {
+//                                        tts[0].setOnUtteranceProgressListener(new UtteranceProgressListener() {
+//                                            @Override
+//                                            public void onStart(String utteranceId) {
+//                                                // Speech started
+//                                            }
+//
+//                                            @Override
+//                                            public void onDone(String utteranceId) {
+//                                                // Speech completed
+//                                                tts[0].shutdown();
+//                                            }
+//
+//                                            @Override
+//                                            public void onError(String utteranceId) {
+//                                                // Error occurred
+//                                                tts[0].shutdown();
+//                                            }
+//                                        });
+//                                        tts[0].speak(voiceMessage, TextToSpeech.QUEUE_FLUSH, null, "UniqueID");
+//                                    }
+//                                } else {
+//                                    Log.e(TAG, "TTS initialization failed");
+//                                    tts[0].shutdown();
+//                                }
+//                            });
+//                            return new LLMService.ActionResultImpl(true, "Spoken to user: " + voiceMessage, "Spoken to user: " + voiceMessage);
+//                        } else {
+//                            return new LLMService.ActionResultImpl(false, "No voice message provided", "No voice message provided");
+//                        }
+//                    } catch (Exception e) {
+//                        return new LLMService.ActionResultImpl(false, "Error in voice say: " + e.getMessage(), "Error in voice say: " + e.getMessage());
+//                    }
+//
+//                }
+
                 default:
                     return new LLMService.ActionResultImpl(false, "Unknown action: " + actionParams, "action not implemented");
             }

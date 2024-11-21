@@ -1,21 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Self explanatory -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <!-- To call a phone number directly without displaying the dialer -->
-    <uses-permission android:name="android.permission.CALL_PHONE" />
-    <!-- To read phone state -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!-- Display notification drawer -->
-    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
-    <!-- Ability to uninstall an app from KISS -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- To call a phone number directly without displaying the dialer -->
+    <uses-permission android:name="android.permission.CALL_PHONE" /> <!-- To read phone state -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" /> <!-- Display notification drawer -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" /> <!-- Ability to uninstall an app from KISS -->
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
-    <!-- Android 11 now makes listing apps a non-default permission
+    <!--
+ Android 11 now makes listing apps a non-default permission
     https://developer.android.com/training/basics/intents/package-visibility
     -->
     <uses-permission
@@ -49,7 +45,8 @@
         android:theme="@style/AppThemeSemiTransparentDark"
         android:usesCleartextTraffic="true"
         tools:ignore="GoogleAppIndexingWarning">
-        <!--Remove android:usesCleartextTraffic="true" to enable https for production-->
+        
+        <!-- Remove android:usesCleartextTraffic="true" to enable https for production -->
         <!--
         clearTaskOnLaunch: when viewing kiss settings, display the main activity when pressing home https://github.com/Neamar/KISS/issues/117
         launchMode=singleTop: call onNewIntent() when pressing home again while already viewing main activity, also redisplay main activity when viewing full-screen contact from picture
@@ -74,6 +71,7 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.ASSIST" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
             <intent-filter>
@@ -104,8 +102,10 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
+
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -137,9 +137,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.LOCALE_CHANGED" />
             </intent-filter>
-        </receiver>
-
-        <!-- On incoming calls, add user to history -->
+        </receiver> <!-- On incoming calls, add user to history -->
         <receiver
             android:name=".broadcast.IncomingCallHandler"
             android:enabled="false"
@@ -157,13 +155,10 @@
                 <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
         </service>
-
-
         <service android:name=".dataprovider.AppProvider" />
         <service android:name=".dataprovider.ContactsProvider" />
         <service android:name=".dataprovider.ShortcutsProvider" />
         <service android:name=".dataprovider.NotesProvider" />
-
         <service
             android:name=".notification.NotificationListener"
             android:enabled="@bool/notification_service_enabled"
@@ -173,7 +168,6 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
-
         <service
             android:name=".utils.LockAccessibilityService"
             android:exported="true"
